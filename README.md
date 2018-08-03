@@ -139,7 +139,7 @@ root@ba372c143b80:/# kafka-console-consumer --bootstrap-server kafka-0-broker.co
 
 ## Step 6: Run the Kafka Performance Test:
 ```
-kafka-producer-perf-test --topic performancetest --num-records 20000000 --record-size 10 --throughput 5000000 --producer-props bootstrap.servers=kafka-0-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-1-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-2-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025
+kafka-producer-perf-test --topic performancetest --num-records 20000000 --record-size 10 --throughput 5000000 --producer-props acks=1 buffer.memory=67108864 compression.type=none batch.size=8196 bootstrap.servers=kafka-0-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-1-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-2-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025
 ```
 
 In this test we are using the following parameters:
@@ -147,6 +147,12 @@ In this test we are using the following parameters:
 - Number of Records: 20M
 - Record Size: 10 bytes
 - Throughput: 5M (Set arbitrarily high to "max out")
+- Ack: 1 write
+	- This allows Kafka to acknowledge 1 write only and let the remaining 2 replicas write in the background
+- Buffer Memory: 67108864 (default)
+- Batch Size: 8196 (default)
+- Compression Type: None
+	- Can set to options: none, lz4, gzip, snappy
 
 Output of the test should look similar to below:
 ```
@@ -347,8 +353,14 @@ fetch.nMsg.sec = 215354.6961
 
 ## Conclusion
 In this example I have tested the base 3 Kafka broker node deploy on a DC/OS Cluster running on AWS m3.xlarge instances. From my test observations with these fixed parameters set:
+- Topic: performancetest
 - Number of Records: 20M
 - Throughput: 5M (Set arbitrarily high to "max out")
+- Ack: 1 write
+        - This allows Kafka to acknowledge 1 write only and let the remaining 2 replicas write in the background
+- Buffer Memory: 67108864 (default)
+- Batch Size: 8196 (default)
+- Compression Type: None
 
 My Variable parameter was `record-size` in bytes which I averaged across 5 runs:
 
