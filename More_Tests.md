@@ -50,7 +50,7 @@ docker run -it confluentinc/cp-kafka /bin/bash
 
 ## Run Tests
 
-### Standard Compression Tests
+### Compression: None
 
 #### Producer Throughput: Single producer thread, no replication, no compression - (topic: benchmark-1-1-none) 
 ```
