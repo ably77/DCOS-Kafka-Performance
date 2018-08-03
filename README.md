@@ -323,6 +323,28 @@ producer-topic-metrics:record-send-rate:{client-id=producer-1, topic=performance
 producer-topic-metrics:record-send-total:{client-id=producer-1, topic=performancetest}  : 20000000.000
 ```
 
+### Kafka Consumer Performance Testing
+```
+kafka-consumer-perf-test --topic performancetest --messages 15000000 --threads 1 --broker-list=kafka-0-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-1-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-2-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025
+```
+- Topic: performancetest
+- Number of Messages to Consume: 1.5M
+- Threads: 1
+
+Example Output (Edited for readability):
+```
+start.time = 2018-08-03 23:20:23:718
+end.time = 2018-08-03 23:21:36:460
+data.consumed.in.MB = 3915.3982
+MB.sec = 53.8258
+data.consumed.in.nMsg = 15000316
+nMsg.sec = 206212.5870
+rebalance.time.ms = 3088
+fetch.time.ms = 69654
+fetch.MB.sec = 56.2121
+fetch.nMsg.sec = 215354.6961
+```
+
 ## Conclusion
 In this example I have tested the base 3 Kafka broker node deploy on a DC/OS Cluster running on AWS m3.xlarge instances. From my test observations with these fixed parameters set:
 - Number of Records: 20M
