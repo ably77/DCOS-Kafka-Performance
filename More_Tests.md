@@ -2,18 +2,66 @@
 [Taken from this Github Repo here](https://gist.github.com/dongjinleekr/d24e3d0c7f92ac0f80c87218f1f5a02b)
 
 
-## Create your topic using the DC/OS CLI:
-### Producer Throughput: Single producer thread, no replication, no compression
+## Create your topics that we will be using in our benchmark tests with the DC/OS CLI:
+
+### Producer Throughput: Single producer thread, no replication, no compression - (topic: benchmark-1-1-none)
 ```
 dcos confluent-kafka topic create benchmark-1-1-none --partitions 1 --replication 1
 ```
 
-Output:
+### Producer Throughput: Single producer thread, no replication, zstandard compression - (topic: benchmark-1-1-zstd)
 ```
-$ dcos confluent-kafka topic create benchmark-1-1-none --partitions 1 --replication 1
-{
-  "message": "Output: Created topic \"benchmark-1-1-none\".\n"
-}
+dcos confluent-kafka topic create benchmark-1-1-zstd --partitions 1 --replication 1
+```
+
+### Producer Throughput: Single producer thread, 3x asynchronous replication, no compression - (topic: benchmark-1-3a-none)
+```
+dcos confluent-kafka topic create benchmark-1-3a-none --partitions 1 --replication 3
+```
+
+### Producer Throughput: Single producer thread, 3x asynchronous replication, zstandard compression - (topic: benchmark-1-3a-zstd)
+```
+dcos confluent-kafka topic create benchmark-1-3a-zstd --partitions 1 --replication 3
+```
+
+### Producer Throughput: Single producer thread, 3x synchronous replication, no compression - (topic: benchmark-1-3-none)
+```
+dcos confluent-kafka topic create benchmark-1-3-none --partitions 1 --replication 3
+```
+
+### Producer Throughput: Single producer thread, 3x synchronous replication, zstandard compression - (topic: benchmark-1-3-zstd)
+```
+dcos confluent-kafka topic create benchmark-1-3-zstd --partitions 1 --replication 3
+```
+
+### Producer Throughput: 3 producer thread, no replication, no compression - (topic: benchmark-3-0-none)
+```
+dcos confluent-kafka topic create benchmark-3-0-none --partitions 1
+```
+
+### Producer Throughput: 3 producer thread, no replication, zstandard compression - (topic: benchmark-3-0-zstd)
+```
+dcos confluent-kafka topic create benchmark-3-0-zstd --partitions 1
+```
+
+### Producer Throughput: 3 producer thread, 3x asynchronous replication, no compression - (topic: benchmark-3-3a-none)
+```
+dcos confluent-kafka topic create benchmark-3-3a-none --partitions 1 --replication 3
+```
+
+### Producer Throughput: 3 producer thread, 3x asynchronous replication, zstandard compression - (topic: benchmark-3-3a-zstd)
+```
+dcos confluent-kafka topic create benchmark-3-3a-zstd --partitions 1 --replication 3
+```
+
+### Producer Throughput: 3 producer thread, 3x synchronous replication, no compression - (topic: benchmark-3-3-none)
+```
+dcos confluent-kafka topic create benchmark-3-3-none --partitions 1 --replication 3
+```
+
+### Producer Throughput: 3 producer thread, 3x synchronous replication, zstandard compression - (topic: benchmark-3-3-zstd)
+```
+dcos confluent-kafka topic create benchmark-3-3-zstd --partitions 1 --replication 3
 ```
 
 ## In a new terminal window SSH into a node and run the Confluent Kafka Docker Image
