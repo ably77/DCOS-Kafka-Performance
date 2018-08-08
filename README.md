@@ -1,20 +1,29 @@
-# Performance Testing Confluent-Kafka
-Curious to see what the baseline benchmark performance of our Confluent Kafka framework? Here is a guide that will take you through basic performance testing, as well as expand into other areas of how to begin performance tuning your Kafka cluster based on Confluent Kafka best practices
+# Load Testing Confluent-Kafka
+Want to load test our Confluent Kafka framework? Here is a guide that will take you through basic performance testing, as well as expand into other areas of how to begin performance tuning your Kafka cluster based on Confluent Kafka best practices and existing tools already provided
 
 ## Prerequisites
 For this guide, the specs of my cluster are as stated below:
 - DC/OS 1.11
 - 1 Master
 - 3 Private Agents
-- 1 Public Agent
 - DC/OS CLI Installed and authenticated to your Local Machine
 
-- AWS Instance Type: m3.xlarge - 4vCPU, 15GB RAM, 80GiB SSD Storage, High Network Performance
+- AWS Instance Type: r3.xlarge - 4vCPU, 30.5GB RAM [See here for more recommended instance types by Confluent](https://www.confluent.io/blog/design-and-deployment-considerations-for-deploying-apache-kafka-on-aws/) 
+	- EBS Backed Storage - 120 GB
 
 ## Step 1: Install Confluent Kafka
 ```
 dcos package install confluent-kafka --yes
 ```
+
+Note that the default Kafka package has these specifications for brokers:
+- 3x Brokers
+- 1 CPU
+- 2048 MEM
+- 5000 MB Disk
+- 512 MB JVM Heap Size
+
+We will explore this later when we go into more Advanced Tuning Tutorials. But for now we will just be load testing the default install of our framework.
 
 Validate Confluent-Kafka Installation:
 ```
@@ -33,12 +42,12 @@ deploy (serial strategy) (COMPLETE)
 
 ### Step 2: Add a test topic from the DC/OS cli
 ```
-dcos confluent-kafka topic create performancetest --partitions 5 --replication 3
+dcos confluent-kafka topic create performancetest --partitions 10 --replication 3
 ```
 
 Output should look similar to below:
 ```
-$ dcos confluent-kafka topic create performancetest --partitions 5 --replication 3
+$ dcos confluent-kafka topic create performancetest --partitions 10 --replication 3
 {
   "message": "Output: Created topic \"performancetest\".\n"
 }
