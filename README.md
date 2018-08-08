@@ -118,7 +118,7 @@ core@ip-10-0-5-167 ~ $
 
 The command below will run the Confluent Kafka docker image which contains multiple tools that we can use to produce, consume, and performance test our Kafka deployment
 ```
-docker run -it confluentinc/cp-kafka /bin/bash
+sudo docker run -it confluentinc/cp-kafka /bin/bash
 ```
 
 ### Test producing a message
@@ -139,13 +139,13 @@ root@ba372c143b80:/# kafka-console-consumer --bootstrap-server kafka-0-broker.co
 
 ## Step 6: Run the Kafka Performance Test:
 ```
-kafka-producer-perf-test --topic performancetest --num-records 20000000 --record-size 10 --throughput 5000000 --producer-props acks=1 buffer.memory=67108864 compression.type=none batch.size=8196 bootstrap.servers=kafka-0-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-1-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-2-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025
+kafka-producer-perf-test --topic performancetest --num-records 5000000 --record-size 250 --throughput 5000000 --producer-props acks=1 buffer.memory=67108864 compression.type=none batch.size=8196 bootstrap.servers=kafka-0-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-1-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-2-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025
 ```
 
 In this test we are using the following parameters:
 - Topic: performancetest
-- Number of Records: 20M
-- Record Size: 10 bytes
+- Number of Records: 5M
+- Record Size: 250 bytes (representative of a typical log line)
 - Throughput: 5M (Set arbitrarily high to "max out")
 - Ack: 1 write
 	- This allows Kafka to acknowledge 1 write only and let the remaining 2 replicas write in the background
