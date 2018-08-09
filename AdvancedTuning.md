@@ -319,7 +319,7 @@ root@ba372c143b80:/# kafka-console-consumer --bootstrap-server kafka-0-broker.co
 
 ## Step 6: Run the Kafka Performance Test:
 ```
-kafka-producer-perf-test --topic performancetest --num-records 5000000 --record-size 250 --throughput 1000000 --producer-props acks=1 buffer.memory=67108864 compression.type=snappy batch.size=8196 bootstrap.servers=kafka-0-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-1-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-2-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025
+kafka-producer-perf-test --topic performancetest --num-records 5000000 --record-size 250 --throughput 1000000 --producer-props acks=1 buffer.memory=67108864 compression.type=none batch.size=8196 bootstrap.servers=kafka-0-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-1-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-2-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025
 ```
 
 In this test we are using the following parameters:
@@ -331,15 +331,15 @@ In this test we are using the following parameters:
 	- This allows Kafka to acknowledge 1 write only and let the remaining 2 replicas write in the background
 - Buffer Memory: 67108864 (default)
 - Batch Size: 8196 (default)
-- Compression Type: snappy (recommended)
+- Compression Type: none
 	- Can set to options: none, lz4, gzip, snappy
 
 Output of the test should look similar to below:
 ```
-808317 records sent, 161663.4 records/sec (38.54 MB/sec), 4.0 ms avg latency, 251.0 max latency.
-1423986 records sent, 284797.2 records/sec (67.90 MB/sec), 3.4 ms avg latency, 82.0 max latency.
-1689771 records sent, 337954.2 records/sec (80.57 MB/sec), 2.8 ms avg latency, 21.0 max latency.
-5000000 records sent, 270577.412198 records/sec (64.51 MB/sec), 3.18 ms avg latency, 251.00 ms max latency, 2 ms 50th, 6 ms 95th, 14 ms 99th, 21 ms 99.9th.
+943363 records sent, 188672.6 records/sec (44.98 MB/sec), 5.8 ms avg latency, 278.0 max latency.
+1330321 records sent, 266064.2 records/sec (63.43 MB/sec), 3.4 ms avg latency, 45.0 max latency.
+1521870 records sent, 304374.0 records/sec (72.57 MB/sec), 3.1 ms avg latency, 31.0 max latency.
+5000000 records sent, 260783.393314 records/sec (62.18 MB/sec), 3.79 ms avg latency, 278.00 ms max latency, 3 ms 50th, 9 ms 95th, 21 ms 99th, 60 ms 99.9th.
 ```
 
 ### Kafka Consumer Performance Testing
@@ -352,34 +352,16 @@ kafka-consumer-perf-test --topic performancetest --messages 15000000 --threads 1
 
 Example Output (Edited for readability):
 ```
-start.time - 2018-08-09 00:04:56:595
-end.time - 2018-08-09 00:05:09:994
+start.time - 2018-08-09 19:07:31:979
+end.time - 2018-08-09 19:07:45:777
 data.consumed.in.MB - 3576.2787
-MB.sec - 266.9064
+MB.sec - 259.1882
 data.consumed.in.nMsg - 15000000
-nMsg.sec - 1119486.5288
-rebalance.time.ms - 3044
-fetch.time.ms - 10355
-fetch.MB.sec - 345.3673
-fetch.nMsg.sec - 1448575.5674
-```
-
-- Topic: performancetest
-- Number of Messages to Consume: 1.5M
-- Threads: 5
-
-Example Output (Edited for readability):
-```
-start.time - 2018-08-09 00:14:52:512
-end.time - 2018-08-09 00:15:03:801
-data.consumed.in.MB - 2151.4893
-MB.sec - 190.5828
-data.consumed.in.nMsg - 15000000
-nMsg.sec - 1328727.0795
-rebalance.time.ms - 3019
-fetch.time.ms - 8270
-fetch.MB.sec - 260.1559
-fetch.nMsg.sec - 1813784.7642
+nMsg.sec - 1087114.0745
+rebalance.time.ms - 3047
+fetch.time.ms - 10751
+fetch.MB.sec - 332.6461
+fetch.nMsg.sec - 1395219.0494
 ```
 
 ## Understand baseline performance
@@ -388,35 +370,35 @@ My variable parameter was `record-size` in bytes which I averaged across 5 runs:
 
 **Record Size: 250 bytes**:
 ```
-5000000 records sent, 243510.446598 records/sec (58.06 MB/sec), 3.64 ms avg latency, 326.00 ms max latency, 2 ms 50th, 9 ms 95th, 19 ms 99th, 38 ms 99.9th.
-5000000 records sent, 268125.268125 records/sec (63.93 MB/sec), 3.13 ms avg latency, 265.00 ms max latency, 2 ms 50th, 7 ms 95th, 18 ms 99th, 33 ms 99.9th.
-5000000 records sent, 243831.073832 records/sec (58.13 MB/sec), 3.21 ms avg latency, 257.00 ms max latency, 3 ms 50th, 8 ms 95th, 18 ms 99th, 39 ms 99.9th.
-5000000 records sent, 270577.412198 records/sec (64.51 MB/sec), 3.18 ms avg latency, 251.00 ms max latency, 2 ms 50th, 6 ms 95th, 14 ms 99th, 21 ms 99.9th.
-5000000 records sent, 238435.860753 records/sec (56.85 MB/sec), 3.21 ms avg latency, 266.00 ms max latency, 2 ms 50th, 7 ms 95th, 18 ms 99th, 36 ms 99.9th.
+5000000 records sent, 260783.393314 records/sec (62.18 MB/sec), 3.79 ms avg latency, 278.00 ms max latency, 3 ms 50th, 9 ms 95th, 21 ms 99th, 60 ms 99.9th.
+5000000 records sent, 266937.162992 records/sec (63.64 MB/sec), 3.73 ms avg latency, 284.00 ms max latency, 3 ms 50th, 10 ms 95th, 18 ms 99th, 25 ms 99.9th.
+5000000 records sent, 257984.624116 records/sec (61.51 MB/sec), 3.63 ms avg latency, 261.00 ms max latency, 3 ms 50th, 9 ms 95th, 30 ms 99th, 72 ms 99.9th.
+5000000 records sent, 241091.663050 records/sec (57.48 MB/sec), 3.63 ms avg latency, 250.00 ms max latency, 3 ms 50th, 9 ms 95th, 18 ms 99th, 26 ms 99.9th.
+5000000 records sent, 254065.040650 records/sec (60.57 MB/sec), 3.57 ms avg latency, 260.00 ms max latency, 3 ms 50th, 8 ms 95th, 18 ms 99th, 27 ms 99.9th.
 
-Average: 252,896.1 records/sec, 60.3 MB/sec, 3.27 ms avg latency, 272.8 ms max latency
+Average: 256172.38 records/sec, 61.07 MB/sec, 3.67 ms avg latency, 266.6 ms max latency
 ```
 
 **Record Size: 500 bytes**:
 ```
-5000000 records sent, 250953.623770 records/sec (119.66 MB/sec), 3.96 ms avg latency, 268.00 ms max latency, 3 ms 50th, 13 ms 95th, 33 ms 99th, 62 ms 99.9th.
-5000000 records sent, 257479.787837 records/sec (122.78 MB/sec), 3.84 ms avg latency, 254.00 ms max latency, 3 ms 50th, 10 ms 95th, 22 ms 99th, 35 ms 99.9th.
-5000000 records sent, 244774.073530 records/sec (116.72 MB/sec), 3.78 ms avg latency, 270.00 ms max latency, 3 ms 50th, 10 ms 95th, 21 ms 99th, 39 ms 99.9th.
-5000000 records sent, 245591.630237 records/sec (117.11 MB/sec), 3.69 ms avg latency, 268.00 ms max latency, 3 ms 50th, 10 ms 95th, 19 ms 99th, 30 ms 99.9th.
-5000000 records sent, 251357.329580 records/sec (119.86 MB/sec), 3.53 ms avg latency, 253.00 ms max latency, 3 ms 50th, 9 ms 95th, 20 ms 99th, 42 ms 99.9th.
+5000000 records sent, 236787.270316 records/sec (112.91 MB/sec), 4.47 ms avg latency, 279.00 ms max latency, 3 ms 50th, 15 ms 95th, 43 ms 99th, 72 ms 99.9th.
+5000000 records sent, 232277.246121 records/sec (110.76 MB/sec), 4.46 ms avg latency, 264.00 ms max latency, 3 ms 50th, 15 ms 95th, 44 ms 99th, 67 ms 99.9th.
+5000000 records sent, 238481.350758 records/sec (113.72 MB/sec), 3.85 ms avg latency, 285.00 ms max latency, 3 ms 50th, 10 ms 95th, 20 ms 99th, 29 ms 99.9th.
+5000000 records sent, 246657.786986 records/sec (117.62 MB/sec), 4.09 ms avg latency, 282.00 ms max latency, 3 ms 50th, 11 ms 95th, 23 ms 99th, 38 ms 99.9th.
+5000000 records sent, 242812.742813 records/sec (115.78 MB/sec), 4.82 ms avg latency, 272.00 ms max latency, 3 ms 50th, 16 ms 95th, 60 ms 99th, 192 ms 99.9th.
 
-Average: 250,031.3 records/sec, 119.23 MB/sec, 3.76 ms avg latency, 262.6 ms max latency
+Average: 239403.28 records/sec, 114.16 MB/sec, 4.34 ms avg latency, 276.4 ms max latency
 ```
 
 **Record Size: 1 kB**
 ```
-5000000 records sent, 235938.089845 records/sec (225.01 MB/sec), 5.01 ms avg latency, 261.00 ms max latency, 3 ms 50th, 18 ms 95th, 61 ms 99th, 97 ms 99.9th.
-5000000 records sent, 231932.461267 records/sec (221.19 MB/sec), 5.62 ms avg latency, 265.00 ms max latency, 3 ms 50th, 22 ms 95th, 133 ms 99th, 160 ms 99.9th.
-5000000 records sent, 233404.910839 records/sec (222.59 MB/sec), 4.53 ms avg latency, 259.00 ms max latency, 3 ms 50th, 12 ms 95th, 30 ms 99th, 80 ms 99.9th.
-5000000 records sent, 238061.229348 records/sec (227.03 MB/sec), 4.61 ms avg latency, 255.00 ms max latency, 3 ms 50th, 15 ms 95th, 40 ms 99th, 59 ms 99.9th.
-5000000 records sent, 235194.505856 records/sec (224.30 MB/sec), 4.59 ms avg latency, 270.00 ms max latency, 3 ms 50th, 18 ms 95th, 49 ms 99th, 88 ms 99.9th.
+5000000 records sent, 222736.992160 records/sec (212.42 MB/sec), 5.08 ms avg latency, 265.00 ms max latency, 3 ms 50th, 15 ms 95th, 32 ms 99th, 46 ms 99.9th.
+5000000 records sent, 208064.583247 records/sec (198.43 MB/sec), 5.24 ms avg latency, 255.00 ms max latency, 4 ms 50th, 18 ms 95th, 37 ms 99th, 56 ms 99.9th.
+5000000 records sent, 222084.036599 records/sec (211.80 MB/sec), 5.46 ms avg latency, 273.00 ms max latency, 4 ms 50th, 19 ms 95th, 35 ms 99th, 53 ms 99.9th.
+5000000 records sent, 211220.006759 records/sec (201.44 MB/sec), 6.11 ms avg latency, 273.00 ms max latency, 3 ms 50th, 17 ms 95th, 41 ms 99th, 66 ms 99.9th.
+5000000 records sent, 229263.148242 records/sec (218.64 MB/sec), 5.54 ms avg latency, 269.00 ms max latency, 4 ms 50th, 18 ms 95th, 45 ms 99th, 69 ms 99.9th.
 
-Average: 234,906.2 records/sec, 224.02 MB/sec, 4.87 ms avg latency, 262 ms max latency
+Average: 218673.75 records/sec, 208.55 MB/sec, 5.49 ms avg latency, 267 ms max latency
 ```
 
 ## Goal: Increase Throughput
@@ -432,7 +414,8 @@ For increasing throughput of Consumers, Confluent recommends:
 - fetch.min.bytes: increase to ~1000000 (default 1)
 
 
-### Lets try the minimum ranges on 10M records:
+### Lets try the lower end range parameters of the recommendations above:
+- number of records - 10M
 - batch.size - 100000
 - linger.ms - 10
 - compression.type - lz4
@@ -446,10 +429,11 @@ kafka-producer-perf-test --topic performancetest --num-records 10000000 --record
 
 Output:
 ```
-10000000 records sent, 346188.465000 records/sec (82.54 MB/sec), 7.75 ms avg latency, 243.00 ms max latency, 8 ms 50th, 13 ms 95th, 23 ms 99th, 44 ms 99.9th.
+10000000 records sent, 328331.746397 records/sec (78.28 MB/sec), 8.00 ms avg latency, 256.00 ms max latency, 8 ms 50th, 13 ms 95th, 18 ms 99th, 27 ms 99.9th.
 ```
 
-### Lets try the maximum range parameters on 10M records:
+### Lets try the upper end range parameters of the recommendations above:
+- number of records - 10M
 - batch.size - 200000
 - linger.ms - 100
 - compression.type - lz4
@@ -463,11 +447,11 @@ kafka-producer-perf-test --topic performancetest --num-records 10000000 --record
 
 Output:
 ```
-10000000 records sent, 349968.502835 records/sec (83.44 MB/sec), 61.24 ms avg latency, 372.00 ms max latency, 61 ms 50th, 105 ms 95th, 110 ms 99th, 122 ms 99.9th.
+10000000 records sent, 346404.323126 records/sec (82.59 MB/sec), 62.27 ms avg latency, 352.00 ms max latency, 58 ms 50th, 102 ms 95th, 107 ms 99th, 118 ms 99.9th.
 ```
 
 ### Conclusions
-Both lower and upper range adjustments result in a >35% increase in throughput performance
+Both lower and upper range adjustments result in a >30% increase in throughput performance from tuning for throughput.
 
 
 ## Goal: Optimize for Latency

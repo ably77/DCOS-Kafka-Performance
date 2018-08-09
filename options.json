@@ -2,14 +2,14 @@
   "brokers": {
     "count": 3,
     "cpus": 3,
-    "disk": 75000,
+    "disk": 25000,
     "disk_path": "kafka-broker-data",
     "disk_type": "ROOT",
     "heap": {
       "size": 512
     },
     "kill_grace_period": 30,
-    "mem": 24000,
+    "mem": 12000,
     "port": 0,
     "port_tls": 0
   },
