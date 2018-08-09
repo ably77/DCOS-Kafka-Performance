@@ -340,7 +340,8 @@ kafka-consumer-perf-test --topic performancetest --messages 15000000 --threads 1
 ```
 - Topic: performancetest
 - Number of Messages to Consume: 1.5M
-- Threads: 1
+- Threads: 1 (default)
+	- set according to how many disks are in the cluster
 
 Example Output (Edited for readability):
 ```
@@ -439,5 +440,5 @@ Average: 137302.09 records/sec, 65.47 MB/sec, 801.39 ms avg latency, 3732 ms max
 ```
 
 ## Conclusion
-At this point we have shown how to use DC/OS to spin up our default Kafka framework, as well as using the tools within the package to perform some basic load testing. As you can see from above, the 3x broker (1 CPU, 2048 MEM, 5GB DISK) default configuration hovers around ~250K msg/sec throughput on a 4 node (m3.xlarge) DC/OS Cluster. As the record-size increases, we notice that latency and throughput start to suffer. In our Advanced tutorial we will move forward to tune parameters within Kafka itself, as well as test horizontal scaling of the cluster.
+At this point we have shown how to use DC/OS to spin up our default Kafka framework, as well as using the tools within the package to perform some basic load testing. As you can see from above, the 3x broker (1 CPU, 2048 MEM, 5GB DISK) default configuration hovers around ~250K msg/sec throughput on a 4 node (m3.xlarge) DC/OS Cluster. As the record-size increases, we notice that latency and throughput start to suffer - this is potentially due to not having enough horsepower. In our Advanced tutorial we will move forward to tune parameters within Kafka itself, as well as test horizontal scaling of the cluster.
 
