@@ -483,11 +483,29 @@ For optimizing latency of Consumers, Confluent recommends:
 - fetch.min.bytes - 1 (default 1)
 
 ## Goal: Optimize for Durability
-For optimizing durability of Procuers, Confluent recommends:
+For optimizing durability of Producers, Confluent recommends:
 - replication.factor - 3, configure per topic
 - acks - all
 - retries - 1
 - max.in.flight.requests.per.connection - 1 (default 5)
 	- to prevent out of order messages
 
-### Continue on
+For optimizing durability of Brokers, Confluent recommends:
+- default.replication.factor - 3 (default 1)
+- auto.create.topics.enable - false (default true)
+- min.insync.replicas - 2 (default 1)
+- unclean.leader.election.enable - false (default true) 
+- broker.rack - rack of the broker (default null)
+- log.flush.interval.messages / log.flush.interval.ms - for topics with very low throughput, set message interval or time interval low as needed (default allows the OS to control flushing)
+
+For optimizing durability of Consumers, Confluent recommends:
+- auto.commit.enable - false (default true)
+
+## Goal: Optimize for Availability
+For optimizing availability of Brokers, Confluent recommends:
+- unclean.leader.election.enable - true (default true)
+- min.insync.replicas - 1 (default 1)
+- num.recovery.threads.per.data.dir - number of directories in log.dirs (default 1)
+
+For optimizing availability of Consumers, Confluent recommends:
+- session.timeout.ms - as low as feasible (default 10000)
