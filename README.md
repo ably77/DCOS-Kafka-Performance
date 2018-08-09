@@ -1,14 +1,14 @@
-# Load Testing Confluent-Kafka
+# Load Testing Confluent-Kafka Quickstart
 Want to load test our Confluent Kafka framework? Here is a guide that will take you through basic performance testing, as well as expand into other areas of how to begin performance tuning your Kafka cluster based on Confluent Kafka best practices and existing tools already provided
 
 ## Prerequisites
 For this guide, the specs of my cluster are as stated below:
 - DC/OS 1.11
 - 1 Master
-- 3 Private Agents
+- 4 Private Agents
 - DC/OS CLI Installed and authenticated to your Local Machine
 
-- AWS Instance Type: r3.xlarge - 4vCPU, 30.5GB RAM [See here for more recommended instance types by Confluent](https://www.confluent.io/blog/design-and-deployment-considerations-for-deploying-apache-kafka-on-aws/) 
+- AWS Instance Type: m3.xlarge - 4vCPU, 15GB RAM [See here for more recommended instance types by Confluent](https://www.confluent.io/blog/design-and-deployment-considerations-for-deploying-apache-kafka-on-aws/) 
 	- EBS Backed Storage - 120 GB
 
 ## Step 1: Install Confluent Kafka
@@ -16,14 +16,15 @@ For this guide, the specs of my cluster are as stated below:
 dcos package install confluent-kafka --yes
 ```
 
-Note that the default Kafka package has these specifications for brokers:
+### Default Kafka Framework Parameters:
+The default Kafka package has these specifications for brokers:
 - 3x Brokers
 - 1 CPU
 - 2048 MEM
 - 5000 MB Disk
 - 512 MB JVM Heap Size
 
-We will explore this later when we go into more Advanced Tuning Tutorials. But for now we will just be load testing the default install of our framework.
+Note that the defaults make up a rather small Kafka deployment, later we will explore tuning further inside Kafka as well as scaling out  when we go into more Advanced Tuning Tutorials. But for now we will just be load testing the default install of our framework.
 
 Validate Confluent-Kafka Installation:
 ```
@@ -148,7 +149,7 @@ root@ba372c143b80:/# kafka-console-consumer --bootstrap-server kafka-0-broker.co
 
 ## Step 6: Run the Kafka Performance Test:
 ```
-kafka-producer-perf-test --topic performancetest --num-records 5000000 --record-size 250 --throughput 1000000 --producer-props acks=1 buffer.memory=67108864 compression.type=snappy batch.size=8196 bootstrap.servers=kafka-0-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-1-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-2-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025
+kafka-producer-perf-test --topic performancetest --num-records 5000000 --record-size 250 --throughput 1000000 --producer-props acks=1 buffer.memory=67108864 compression.type=none batch.size=8196 bootstrap.servers=kafka-0-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-1-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-2-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025
 ```
 
 In this test we are using the following parameters:
@@ -160,7 +161,7 @@ In this test we are using the following parameters:
 	- This allows Kafka to acknowledge 1 write only and let the remaining 2 replicas write in the background
 - Buffer Memory: 67108864 (default)
 - Batch Size: 8196 (default)
-- Compression Type: snappy (recommended)
+- Compression Type: none
 	- Can set to options: none, lz4, gzip, snappy
 
 Output of the test should look similar to below:
