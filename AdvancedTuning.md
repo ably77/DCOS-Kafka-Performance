@@ -403,6 +403,7 @@ Average: 218673.75 records/sec, 208.55 MB/sec, 5.49 ms avg latency, 267 ms max l
 
 ## Goal: Increase Throughput
 
+#### Producers
 For increasing throughput of Producers, Confluent recommends:
 - batch.size: increase to 100000-200000 (default 16384)
 - linger.ms: increase to 10-100 (default 0)
@@ -410,11 +411,13 @@ For increasing throughput of Producers, Confluent recommends:
 - acks = 1 (default 1)
 - buffer.memory: increase if there are a lot of partitions (default 33554432)
 
+#### Consumers
 For increasing throughput of Consumers, Confluent recommends:
 - fetch.min.bytes: increase to ~1000000 (default 1)
 
+### Producer Test
 
-### Lets try the lower end range parameters of the recommendations above:
+#### Lets try the lower end range parameters of the recommendations above:
 - number of records - 10M
 - batch.size - 100000
 - linger.ms - 10
@@ -432,7 +435,7 @@ Output:
 10000000 records sent, 328331.746397 records/sec (78.28 MB/sec), 8.00 ms avg latency, 256.00 ms max latency, 8 ms 50th, 13 ms 95th, 18 ms 99th, 27 ms 99.9th.
 ```
 
-### Lets try the upper end range parameters of the recommendations above:
+#### Lets try the upper end range parameters of the recommendations above:
 - number of records - 10M
 - batch.size - 200000
 - linger.ms - 100
@@ -450,23 +453,57 @@ Output:
 10000000 records sent, 346404.323126 records/sec (82.59 MB/sec), 62.27 ms avg latency, 352.00 ms max latency, 58 ms 50th, 102 ms 95th, 107 ms 99th, 118 ms 99.9th.
 ```
 
-### Conclusions
-Both lower and upper range adjustments result in a >30% increase in throughput performance from tuning for throughput.
+### Consumer Test
 
+#### Lets try the upper end range parameters of the recommendations above:
+- fetch.min.bytes: increase to ~1000000 (default 1)
+
+Command: 
+```
+kafka-consumer-perf-test --topic performancetest --messages 15000000 --threads 1 fetch.min.bytes=1000000 --broker-list=kafka-0-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-1-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-2-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025
+```
+
+Output:
+```
+start.time - 2018-08-09 20:57:02:104
+end.time - 2018-08-09 20:57:15:837
+data.consumed.in.MB - 3576.2787
+MB.sec - 260.4150
+data.consumed.in.nMsg - 15000000
+nMsg.sec - 1092259.5209
+rebalance.time.ms - 3049
+fetch.time.ms - 10684
+fetch.MB.sec - 334.7322
+fetch.nMsg.sec - 1403968.5511
+```
+
+### Conclusions
+
+#### Producers
+Both lower and upper range adjustments result in a >30% increase in throughput performance from tuning for throughput. While the upper end provided an extra 5.5% boost in throughput (~18K msg/sec) it also increased the avg latency from 3.67ms to 62.27 whereas the lower end provided a significant throughput improvement with only an increase in average latency from 3.67ms to 8ms
+
+#### Consumers
+In my case, increasing fetch.min.bytes from 1 --> 1000000 only resulted in an increase of 0.5% throughput in message consumption.
 
 ## Goal: Optimize for Latency
+
+#### Producers
 For optimizing latency of Producers, Confluent recommends:
 - linger.ms - 0
 - compression.type - none
 - acks - 1
 
+#### Brokers
 For optimizing latency of Brokers, Confluent recommends:
 - num.replica.fetchers - increase if followers can't keep up with the leader (default = 1)
 
+#### Consumers
 For optimizing latency of Consumers, Confluent recommends:
 - fetch.min.bytes - 1 (default 1)
 
 ## Goal: Optimize for Durability
+
+#### Producers
 For optimizing durability of Producers, Confluent recommends:
 - replication.factor - 3, configure per topic
 - acks - all
@@ -474,6 +511,7 @@ For optimizing durability of Producers, Confluent recommends:
 - max.in.flight.requests.per.connection - 1 (default 5)
 	- to prevent out of order messages
 
+#### Brokers
 For optimizing durability of Brokers, Confluent recommends:
 - default.replication.factor - 3 (default 1)
 - auto.create.topics.enable - false (default true)
@@ -482,14 +520,18 @@ For optimizing durability of Brokers, Confluent recommends:
 - broker.rack - rack of the broker (default null)
 - log.flush.interval.messages / log.flush.interval.ms - for topics with very low throughput, set message interval or time interval low as needed (default allows the OS to control flushing)
 
+#### Consumers
 For optimizing durability of Consumers, Confluent recommends:
 - auto.commit.enable - false (default true)
 
 ## Goal: Optimize for Availability
+
+#### Brokers
 For optimizing availability of Brokers, Confluent recommends:
 - unclean.leader.election.enable - true (default true)
 - min.insync.replicas - 1 (default 1)
 - num.recovery.threads.per.data.dir - number of directories in log.dirs (default 1)
 
+#### Consumers
 For optimizing availability of Consumers, Confluent recommends:
 - session.timeout.ms - as low as feasible (default 10000)
