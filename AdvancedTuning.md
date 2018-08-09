@@ -198,7 +198,7 @@ See `options.json` configuration below, as you can see there are many parameters
 
 ## Step 1: Install Confluent Kafka
 ```
-dcos package install confluent-kafka --options=https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/options.json --yes
+dcos package install confluent-kafka --options=options.json --yes
 ```
 
 Validate Confluent-Kafka Installation:
