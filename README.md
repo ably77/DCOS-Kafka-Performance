@@ -9,7 +9,7 @@ For this guide, the specs of my cluster are as stated below:
 - DC/OS CLI Installed and authenticated to your Local Machine
 
 - AWS Instance Type: m3.xlarge - 4vCPU, 15GB RAM [See here for more recommended instance types by Confluent](https://www.confluent.io/blog/design-and-deployment-considerations-for-deploying-apache-kafka-on-aws/) 
-	- EBS Backed Storage - 120 GB
+	- EBS Backed Storage - 60 GB
 
 ## Step 1: Install Confluent Kafka
 ```

@@ -8,8 +8,8 @@ For this guide, the specs of my cluster are as stated below:
 - 4 Private Agents
 - DC/OS CLI Installed and authenticated to your Local Machine
 
-- AWS Instance Type: r3.xlarge - 4vCPU, 30.5GB RAM [See here for more recommended instance types by Confluent](https://www.confluent.io/blog/design-and-deployment-considerations-for-deploying-apache-kafka-on-aws/) 
-	- EBS Backed Storage - 120 GB
+- AWS Instance Type: m3.xlarge - 4vCPU, 15GB RAM [See here for more recommended instance types by Confluent](https://www.confluent.io/blog/design-and-deployment-considerations-for-deploying-apache-kafka-on-aws/) 
+	- EBS Backed Storage - 60 GB
 
 ### Default Kafka Framework Parameters
 Note that the default Kafka package has these specifications for brokers:
@@ -19,11 +19,13 @@ Note that the default Kafka package has these specifications for brokers:
 - 5000 MB Disk
 - 512 MB JVM Heap Size
 
+For our Advanced Guide we will later scale to a larger Kafka cluster size to observe performance improvements:
+
 ### Our Advanced Kafka Framework Parameters
 - 3x Brokers
 - 3 CPU
-- 24GB MEM
-- 75 GB Disk
+- 12GB MEM
+- 25 GB Disk
 - 512 MB JVM Heap Size
 
 See `options.json` configuration below, as you can see there are many parameters in Kafka that we can tune:
@@ -32,14 +34,14 @@ See `options.json` configuration below, as you can see there are many parameters
   "brokers": {
     "count": 3,
     "cpus": 3,
-    "disk": 75000,
+    "disk": 25000,
     "disk_path": "kafka-broker-data",
     "disk_type": "ROOT",
     "heap": {
       "size": 512
     },
     "kill_grace_period": 30,
-    "mem": 24000,
+    "mem": 12000,
     "port": 0,
     "port_tls": 0
   },
@@ -196,7 +198,7 @@ See `options.json` configuration below, as you can see there are many parameters
 
 ## Step 1: Install Confluent Kafka
 ```
-dcos package install confluent-kafka --options=options.json --yes
+dcos package install confluent-kafka --options=https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/options.json --yes
 ```
 
 Validate Confluent-Kafka Installation:
