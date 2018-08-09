@@ -1,4 +1,4 @@
-# WIP - Advanced Load Testing Kafka
+# Advanced Load Testing Kafka
 Lets take our prior example and expand on it. We're going to try to change up some parameters and see what performance we get
 
 ## Prerequisites
@@ -484,6 +484,77 @@ Both lower and upper range adjustments result in a >30% increase in throughput p
 
 #### Consumers
 In my case, increasing fetch.min.bytes from 1 --> 1000000 only resulted in an increase of 0.5% throughput in message consumption from 1087114 messages to 1092259.5209.
+
+## Horizontal Scale
+Now that we have reached a "peak" in our current configuration (3CPU, 12GB MEM, 25GB DISK) lets horizontally scale our cluster to see what performance benefits we can gain
+
+### Cluster Parameters
+- 6x Brokers
+- 3 CPU
+- 12GB MEM
+- 25 GB Disk
+- 512 MB JVM Heap Size 
+
+As you can see, nothing has changed above from our prior configuration except for scaling from 3 to 6 Kafka brokers. You can do so by passing an update command with an updated options.json file, or through the UI change Kafka broker count to 6.
+
+To validate that our deployment is correct:
+```
+dcos confluent-kafka plan status deploy
+```
+
+Output should look similar to below:
+```
+$ dcos confluent-kafka plan status deploy
+deploy (serial strategy) (COMPLETE)
+└─ broker (serial strategy) (COMPLETE)
+   ├─ kafka-0:[broker] (COMPLETE)
+   ├─ kafka-1:[broker] (COMPLETE)
+   ├─ kafka-2:[broker] (COMPLETE)
+   ├─ kafka-3:[broker] (COMPLETE)
+   ├─ kafka-4:[broker] (COMPLETE)
+   └─ kafka-5:[broker] (COMPLETE)
+```
+
+### Run the Kafka Performance Test
+Now lets run the same Kafka performance test as before on our 6 broker node Kafka cluster
+
+Command:
+```
+kafka-producer-perf-test --topic performancetest --num-records 5000000 --record-size 250 --throughput 1000000 --producer-props acks=1 buffer.memory=67108864 compression.type=none batch.size=8196 bootstrap.servers=kafka-0-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-1-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-2-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025
+```
+
+Output:
+```
+5000000 records sent, 242824.534991 records/sec (57.89 MB/sec), 11.29 ms avg latency, 347.00 ms max latency, 3 ms 50th, 35 ms 95th, 231 ms 99th, 306 ms 99.9th.
+```
+
+As we can see from above, our throughput for a single producer hasnt increased much, however in order to gain the benefits of horizontal scaling we will also throw multiple producers at the same topic to see how much total throughput we can get out of the Kafka deployment.
+
+### SSH into multiple nodes
+In order to attack this throughput problem with multiple producers in parallel, we will SSH into multiple nodes in the cluster to run multiple producers. Note that running multiple producers from the same node is less effective in this situation because our bottleneck may start to come from other places, such as the NIC. Keeping the producers on seperate nodes is more ideal for our current testing case.
+
+Follow the SSH instructions above and run the Confluent Kafka Docker image on every single agent in your DC/OS cluster. We can then use something like tmux in order to mirror multiple producers in parallel all hitting the same performancetest topic that we have been testing on.
+
+### Example output from 10 Agents
+In my case, I have a 10 node DC/OS cluster, running our 6x broker Kafka configuration. The example aggregate throughput is below. Since we are running all of these in parallel, I can add the avg throughput values together to determine total throughput:
+```
+Node 1: 10000000 records sent, 349027.957139 records/sec (83.21 MB/sec), 75.34 ms avg latency, 402.00 ms max latency, 69 ms 50th, 152 ms 95th, 315 ms 99th, 370 ms 99.9th.
+Node 2: 10000000 records sent, 357066.342927 records/sec (85.13 MB/sec), 76.01 ms avg latency, 362.00 ms max latency, 76 ms 50th, 133 ms 95th, 186 ms 99th, 232 ms 99.9th.
+Node 3: 10000000 records sent, 351877.265210 records/sec (83.89 MB/sec), 73.77 ms avg latency, 341.00 ms max latency, 63 ms 50th, 109 ms 95th, 150 ms 99th, 223 ms 99.9th.
+Node 4: 10000000 records sent, 340448.711402 records/sec (81.17 MB/sec), 74.89 ms avg latency, 393.00 ms max latency, 71 ms 50th, 119 ms 95th, 154 ms 99th, 205 ms 99.9th.
+Node 5: 10000000 records sent, 283326.250177 records/sec (67.55 MB/sec), 71.76 ms avg latency, 394.00 ms max latency, 66 ms 50th, 118 ms 95th, 168 ms 99th, 227 ms 99.9th.
+Node 6: 10000000 records sent, 345721.694036 records/sec (82.43 MB/sec), 75.39 ms avg latency, 472.00 ms max latency, 79 ms 50th, 158 ms 95th, 370 ms 99th, 447 ms 99.9th.
+Node 7: 10000000 records sent, 283326.250177 records/sec (67.55 MB/sec), 71.76 ms avg latency, 394.00 ms max latency, 66 ms 50th, 118 ms 95th, 168 ms 99th, 227 ms 99.9th.
+Node 8: 10000000 records sent, 350299.506078 records/sec (83.52 MB/sec), 75.47 ms avg latency, 352.00 ms max latency, 78 ms 50th, 144 ms 95th, 217 ms 99th, 266 ms 99.9th.
+Node 9: 10000000 records sent, 292963.028066 records/sec (69.85 MB/sec), 73.41 ms avg latency, 416.00 ms max latency, 75 ms 50th, 131 ms 95th, 210 ms 99th, 265 ms 99.9th.
+Node 10: 10000000 records sent, 279033.428205 records/sec (66.53 MB/sec), 72.33 ms avg latency, 387.00 ms max latency, 72 ms 50th, 123 ms 95th, 166 ms 99th, 238 ms 99.9th.
+
+Total Throughput: 3233090.43 records/sec, 770.83 MB/sec, 74.01 ms avg latency, 391.3 ms max latency
+
+### Conclusions
+By horizontally scaling our Kafka cluster as well as increasing the parallelism of our Producers, we can use the increased throughput parameters to achieve an aggregate 3.23 million messages per second on our single performancetest topic!
+
+# Other Design Goals
 
 ## Goal: Optimize for Latency
 
