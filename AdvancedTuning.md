@@ -483,7 +483,7 @@ fetch.nMsg.sec - 1403968.5511
 Both lower and upper range adjustments result in a >30% increase in throughput performance from tuning for throughput. While the upper end provided an extra 5.5% boost in throughput (~18K msg/sec) it also increased the avg latency from 3.67ms to 62.27 whereas the lower end provided a significant throughput improvement with only an increase in average latency from 3.67ms to 8ms
 
 #### Consumers
-In my case, increasing fetch.min.bytes from 1 --> 1000000 only resulted in an increase of 0.5% throughput in message consumption.
+In my case, increasing fetch.min.bytes from 1 --> 1000000 only resulted in an increase of 0.5% throughput in message consumption from 1087114 messages to 1092259.5209.
 
 ## Goal: Optimize for Latency
 
