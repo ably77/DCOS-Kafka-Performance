@@ -1,4 +1,4 @@
-# Advanced Load Testing Kafka
+# WIP - Advanced Load Testing Kafka
 Lets take our prior example and expand on it. We're going to try to change up some parameters and see what performance we get
 
 ## Prerequisites
@@ -264,16 +264,11 @@ Output:
 ```
 $ dcos node
    HOSTNAME        IP                         ID                    TYPE                 REGION          ZONE
-  10.0.2.254   10.0.2.254  306242b2-7a64-48b0-a140-5418c5a880e1-S3  agent            aws/us-west-2  aws/us-west-2c
-  10.0.5.167   10.0.5.167  306242b2-7a64-48b0-a140-5418c5a880e1-S1  agent            aws/us-west-2  aws/us-west-2a
-  10.0.5.40    10.0.5.40   306242b2-7a64-48b0-a140-5418c5a880e1-S2  agent            aws/us-west-2  aws/us-west-2a
-  10.0.6.188   10.0.6.188  306242b2-7a64-48b0-a140-5418c5a880e1-S0  agent            aws/us-west-2  aws/us-west-2a
-  10.0.6.224   10.0.6.224  306242b2-7a64-48b0-a140-5418c5a880e1-S8  agent            aws/us-west-2  aws/us-west-2a
-  10.0.6.229   10.0.6.229  306242b2-7a64-48b0-a140-5418c5a880e1-S4  agent            aws/us-west-2  aws/us-west-2a
-  10.0.7.109   10.0.7.109  306242b2-7a64-48b0-a140-5418c5a880e1-S5  agent            aws/us-west-2  aws/us-west-2a
-  10.0.7.232   10.0.7.232  306242b2-7a64-48b0-a140-5418c5a880e1-S7  agent            aws/us-west-2  aws/us-west-2a
-  10.0.7.236   10.0.7.236  306242b2-7a64-48b0-a140-5418c5a880e1-S6  agent            aws/us-west-2  aws/us-west-2a
-master.mesos.  10.0.2.204    306242b2-7a64-48b0-a140-5418c5a880e1   master (leader)  aws/us-west-2  aws/us-west-2c
+  10.0.4.103   10.0.4.103  72244e5f-7a62-4058-b987-6b00244e9fce-S0  agent            aws/us-west-2  aws/us-west-2b
+  10.0.4.202   10.0.4.202  72244e5f-7a62-4058-b987-6b00244e9fce-S1  agent            aws/us-west-2  aws/us-west-2b
+  10.0.7.244   10.0.7.244  72244e5f-7a62-4058-b987-6b00244e9fce-S3  agent            aws/us-west-2  aws/us-west-2b
+  10.0.7.87    10.0.7.87   72244e5f-7a62-4058-b987-6b00244e9fce-S2  agent            aws/us-west-2  aws/us-west-2b
+master.mesos.  10.0.3.25     72244e5f-7a62-4058-b987-6b00244e9fce   master (leader)  aws/us-west-2  aws/us-west-2b
 ```
 
 Select an agent and run the below command to SSH into a DC/OS Private Agent
@@ -339,171 +334,10 @@ In this test we are using the following parameters:
 
 Output of the test should look similar to below:
 ```
-630004 records sent, 125724.2 records/sec (29.97 MB/sec), 166.0 ms avg latency, 1506.0 max latency.
-831054 records sent, 166210.8 records/sec (39.63 MB/sec), 445.2 ms avg latency, 3076.0 max latency.
-1186935 records sent, 237102.5 records/sec (56.53 MB/sec), 135.5 ms avg latency, 1166.0 max latency.
-1132588 records sent, 226517.6 records/sec (54.01 MB/sec), 242.2 ms avg latency, 1700.0 max latency.
-1161926 records sent, 232060.3 records/sec (55.33 MB/sec), 88.4 ms avg latency, 433.0 max latency.
-5000000 records sent, 195091.497913 records/sec (46.51 MB/sec), 203.55 ms avg latency, 3076.00 ms max latency, 19 ms 50th, 216 ms 95th, 548 ms 99th, 663 ms 99.9th.
-```
-
-You can also append the `--print-metrics` flag to the performance test to retrieve more descriptive metrics information:
-```
-kafka-producer-perf-test --topic performancetest --num-records 20000000 --record-size 10 --throughput 5000000 --print-metrics --producer-props bootstrap.servers=kafka-0-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-1-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-2-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025
-```
-
-Output should look similar to below:
-```
-681897 records sent, 136215.9 records/sec (32.48 MB/sec), 113.3 ms avg latency, 1724.0 max latency.
-859206 records sent, 171841.2 records/sec (40.97 MB/sec), 362.3 ms avg latency, 3022.0 max latency.
-1034156 records sent, 206831.2 records/sec (49.31 MB/sec), 618.9 ms avg latency, 3610.0 max latency.
-1044415 records sent, 208883.0 records/sec (49.80 MB/sec), 595.3 ms avg latency, 3264.0 max latency.
-1129617 records sent, 225923.4 records/sec (53.86 MB/sec), 678.5 ms avg latency, 3855.0 max latency.
-5000000 records sent, 188253.012048 records/sec (44.88 MB/sec), 505.41 ms avg latency, 3855.00 ms max latency, 13 ms 50th, 176 ms 95th, 302 ms 99th, 370 ms 99.9th.
-
-Metric Name                                                                               Value
-app-info:commit-id:{client-id=producer-1}                                               : 4b1dd33f255ddd2f
-app-info:version:{client-id=producer-1}                                                 : 2.0.0-cp1
-kafka-metrics-count:count:{client-id=producer-1}                                        : 142.000
-producer-metrics:batch-size-avg:{client-id=producer-1}                                  : 844.688
-producer-metrics:batch-size-max:{client-id=producer-1}                                  : 8107.000
-producer-metrics:batch-split-rate:{client-id=producer-1}                                : 0.000
-producer-metrics:batch-split-total:{client-id=producer-1}                               : 0.000
-producer-metrics:buffer-available-bytes:{client-id=producer-1}                          : 67108864.000
-producer-metrics:buffer-exhausted-rate:{client-id=producer-1}                           : 0.000
-producer-metrics:buffer-exhausted-total:{client-id=producer-1}                          : 0.000
-producer-metrics:buffer-total-bytes:{client-id=producer-1}                              : 67108864.000
-producer-metrics:bufferpool-wait-ratio:{client-id=producer-1}                           : 0.000
-producer-metrics:bufferpool-wait-time-total:{client-id=producer-1}                      : 0.000
-producer-metrics:compression-rate-avg:{client-id=producer-1}                            : 0.183
-producer-metrics:connection-close-rate:{client-id=producer-1}                           : 0.000
-producer-metrics:connection-close-total:{client-id=producer-1}                          : 0.000
-producer-metrics:connection-count:{client-id=producer-1}                                : 6.000
-producer-metrics:connection-creation-rate:{client-id=producer-1}                        : 0.106
-producer-metrics:connection-creation-total:{client-id=producer-1}                       : 6.000
-producer-metrics:failed-authentication-rate:{client-id=producer-1}                      : 0.000
-producer-metrics:failed-authentication-total:{client-id=producer-1}                     : 0.000
-producer-metrics:incoming-byte-rate:{client-id=producer-1}                              : 137109.034
-producer-metrics:incoming-byte-total:{client-id=producer-1}                             : 7738571.000
-producer-metrics:io-ratio:{client-id=producer-1}                                        : 0.066
-producer-metrics:io-time-ns-avg:{client-id=producer-1}                                  : 17845.079
-producer-metrics:io-wait-ratio:{client-id=producer-1}                                   : 0.090
-producer-metrics:io-wait-time-ns-avg:{client-id=producer-1}                             : 24324.668
-producer-metrics:io-waittime-total:{client-id=producer-1}                               : 5074198810.000
-producer-metrics:iotime-total:{client-id=producer-1}                                    : 3722537018.000
-producer-metrics:metadata-age:{client-id=producer-1}                                    : 26.433
-producer-metrics:network-io-rate:{client-id=producer-1}                                 : 3073.080
-producer-metrics:network-io-total:{client-id=producer-1}                                : 151245318.000
-producer-metrics:outgoing-byte-rate:{client-id=producer-1}                              : 2542507.432
-producer-metrics:outgoing-byte-total:{client-id=producer-1}                             : 143506747.000
-producer-metrics:produce-throttle-time-avg:{client-id=producer-1}                       : 0.000
-producer-metrics:produce-throttle-time-max:{client-id=producer-1}                       : 0.000
-producer-metrics:record-error-rate:{client-id=producer-1}                               : 0.000
-producer-metrics:record-error-total:{client-id=producer-1}                              : 0.000
-producer-metrics:record-queue-time-avg:{client-id=producer-1}                           : 171.319
-producer-metrics:record-queue-time-max:{client-id=producer-1}                           : 3841.000
-producer-metrics:record-retry-rate:{client-id=producer-1}                               : 0.000
-producer-metrics:record-retry-total:{client-id=producer-1}                              : 0.000
-producer-metrics:record-send-rate:{client-id=producer-1}                                : 88709.105
-producer-metrics:record-send-total:{client-id=producer-1}                               : 5000000.000
-producer-metrics:record-size-avg:{client-id=producer-1}                                 : 336.000
-producer-metrics:record-size-max:{client-id=producer-1}                                 : 336.000
-producer-metrics:records-per-request-avg:{client-id=producer-1}                         : 57.659
-producer-metrics:request-latency-avg:{client-id=producer-1}                             : 4.100
-producer-metrics:request-latency-max:{client-id=producer-1}                             : 175.000
-producer-metrics:request-rate:{client-id=producer-1}                                    : 1536.567
-producer-metrics:request-size-avg:{client-id=producer-1}                                : 1654.638
-producer-metrics:request-size-max:{client-id=producer-1}                                : 16061.000
-producer-metrics:request-total:{client-id=producer-1}                                   : 143506747.000
-producer-metrics:requests-in-flight:{client-id=producer-1}                              : 0.000
-producer-metrics:response-rate:{client-id=producer-1}                                   : 1536.649
-producer-metrics:response-total:{client-id=producer-1}                                  : 7738571.000
-producer-metrics:select-rate:{client-id=producer-1}                                     : 3686.477
-producer-metrics:select-total:{client-id=producer-1}                                    : 5074198810.000
-producer-metrics:successful-authentication-rate:{client-id=producer-1}                  : 0.000
-producer-metrics:successful-authentication-total:{client-id=producer-1}                 : 0.000
-producer-metrics:waiting-threads:{client-id=producer-1}                                 : 0.000
-producer-node-metrics:incoming-byte-rate:{client-id=producer-1, node-id=node--1}        : 4.394
-producer-node-metrics:incoming-byte-rate:{client-id=producer-1, node-id=node--2}        : 10.808
-producer-node-metrics:incoming-byte-rate:{client-id=producer-1, node-id=node--3}        : 4.394
-producer-node-metrics:incoming-byte-rate:{client-id=producer-1, node-id=node-0}         : 71787.795
-producer-node-metrics:incoming-byte-rate:{client-id=producer-1, node-id=node-1}         : 53318.851
-producer-node-metrics:incoming-byte-rate:{client-id=producer-1, node-id=node-2}         : 12157.785
-producer-node-metrics:incoming-byte-total:{client-id=producer-1, node-id=node--1}       : 248.000
-producer-node-metrics:incoming-byte-total:{client-id=producer-1, node-id=node--2}       : 610.000
-producer-node-metrics:incoming-byte-total:{client-id=producer-1, node-id=node--3}       : 248.000
-producer-node-metrics:incoming-byte-total:{client-id=producer-1, node-id=node-0}        : 4046678.000
-producer-node-metrics:incoming-byte-total:{client-id=producer-1, node-id=node-1}        : 3005477.000
-producer-node-metrics:incoming-byte-total:{client-id=producer-1, node-id=node-2}        : 685310.000
-producer-node-metrics:outgoing-byte-rate:{client-id=producer-1, node-id=node--1}        : 0.851
-producer-node-metrics:outgoing-byte-rate:{client-id=producer-1, node-id=node--2}        : 1.665
-producer-node-metrics:outgoing-byte-rate:{client-id=producer-1, node-id=node--3}        : 0.850
-producer-node-metrics:outgoing-byte-rate:{client-id=producer-1, node-id=node-0}         : 1158191.876
-producer-node-metrics:outgoing-byte-rate:{client-id=producer-1, node-id=node-1}         : 1013162.604
-producer-node-metrics:outgoing-byte-rate:{client-id=producer-1, node-id=node-2}         : 374339.436
-producer-node-metrics:outgoing-byte-total:{client-id=producer-1, node-id=node--1}       : 48.000
-producer-node-metrics:outgoing-byte-total:{client-id=producer-1, node-id=node--2}       : 94.000
-producer-node-metrics:outgoing-byte-total:{client-id=producer-1, node-id=node--3}       : 48.000
-producer-node-metrics:outgoing-byte-total:{client-id=producer-1, node-id=node-0}        : 65293067.000
-producer-node-metrics:outgoing-byte-total:{client-id=producer-1, node-id=node-1}        : 57111976.000
-producer-node-metrics:outgoing-byte-total:{client-id=producer-1, node-id=node-2}        : 21101514.000
-producer-node-metrics:request-latency-avg:{client-id=producer-1, node-id=node--1}       : 0.000
-producer-node-metrics:request-latency-avg:{client-id=producer-1, node-id=node--2}       : 0.000
-producer-node-metrics:request-latency-avg:{client-id=producer-1, node-id=node--3}       : 0.000
-producer-node-metrics:request-latency-avg:{client-id=producer-1, node-id=node-0}        : 2.597
-producer-node-metrics:request-latency-avg:{client-id=producer-1, node-id=node-1}        : 3.509
-producer-node-metrics:request-latency-avg:{client-id=producer-1, node-id=node-2}        : 11.877
-producer-node-metrics:request-latency-max:{client-id=producer-1, node-id=node--1}       : -Infinity
-producer-node-metrics:request-latency-max:{client-id=producer-1, node-id=node--2}       : -Infinity
-producer-node-metrics:request-latency-max:{client-id=producer-1, node-id=node--3}       : -Infinity
-producer-node-metrics:request-latency-max:{client-id=producer-1, node-id=node-0}        : 133.000
-producer-node-metrics:request-latency-max:{client-id=producer-1, node-id=node-1}        : 175.000
-producer-node-metrics:request-latency-max:{client-id=producer-1, node-id=node-2}        : 169.000
-producer-node-metrics:request-rate:{client-id=producer-1, node-id=node--1}              : 0.035
-producer-node-metrics:request-rate:{client-id=producer-1, node-id=node--2}              : 0.053
-producer-node-metrics:request-rate:{client-id=producer-1, node-id=node--3}              : 0.035
-producer-node-metrics:request-rate:{client-id=producer-1, node-id=node-0}               : 772.009
-producer-node-metrics:request-rate:{client-id=producer-1, node-id=node-1}               : 573.443
-producer-node-metrics:request-rate:{client-id=producer-1, node-id=node-2}               : 192.940
-producer-node-metrics:request-size-avg:{client-id=producer-1, node-id=node--1}          : 24.000
-producer-node-metrics:request-size-avg:{client-id=producer-1, node-id=node--2}          : 31.333
-producer-node-metrics:request-size-avg:{client-id=producer-1, node-id=node--3}          : 24.000
-producer-node-metrics:request-size-avg:{client-id=producer-1, node-id=node-0}           : 1500.231
-producer-node-metrics:request-size-avg:{client-id=producer-1, node-id=node-1}           : 1766.805
-producer-node-metrics:request-size-avg:{client-id=producer-1, node-id=node-2}           : 1940.191
-producer-node-metrics:request-size-max:{client-id=producer-1, node-id=node--1}          : 24.000
-producer-node-metrics:request-size-max:{client-id=producer-1, node-id=node--2}          : 46.000
-producer-node-metrics:request-size-max:{client-id=producer-1, node-id=node--3}          : 24.000
-producer-node-metrics:request-size-max:{client-id=producer-1, node-id=node-0}           : 16030.000
-producer-node-metrics:request-size-max:{client-id=producer-1, node-id=node-1}           : 16061.000
-producer-node-metrics:request-size-max:{client-id=producer-1, node-id=node-2}           : 8172.000
-producer-node-metrics:request-total:{client-id=producer-1, node-id=node--1}             : 48.000
-producer-node-metrics:request-total:{client-id=producer-1, node-id=node--2}             : 94.000
-producer-node-metrics:request-total:{client-id=producer-1, node-id=node--3}             : 48.000
-producer-node-metrics:request-total:{client-id=producer-1, node-id=node-0}              : 65293067.000
-producer-node-metrics:request-total:{client-id=producer-1, node-id=node-1}              : 57111976.000
-producer-node-metrics:request-total:{client-id=producer-1, node-id=node-2}              : 21101514.000
-producer-node-metrics:response-rate:{client-id=producer-1, node-id=node--1}             : 0.035
-producer-node-metrics:response-rate:{client-id=producer-1, node-id=node--2}             : 0.053
-producer-node-metrics:response-rate:{client-id=producer-1, node-id=node--3}             : 0.035
-producer-node-metrics:response-rate:{client-id=producer-1, node-id=node-0}              : 772.077
-producer-node-metrics:response-rate:{client-id=producer-1, node-id=node-1}              : 573.464
-producer-node-metrics:response-rate:{client-id=producer-1, node-id=node-2}              : 192.946
-producer-node-metrics:response-total:{client-id=producer-1, node-id=node--1}            : 248.000
-producer-node-metrics:response-total:{client-id=producer-1, node-id=node--2}            : 610.000
-producer-node-metrics:response-total:{client-id=producer-1, node-id=node--3}            : 248.000
-producer-node-metrics:response-total:{client-id=producer-1, node-id=node-0}             : 4046678.000
-producer-node-metrics:response-total:{client-id=producer-1, node-id=node-1}             : 3005477.000
-producer-node-metrics:response-total:{client-id=producer-1, node-id=node-2}             : 685310.000
-producer-topic-metrics:byte-rate:{client-id=producer-1, topic=performancetest}          : 2435391.363
-producer-topic-metrics:byte-total:{client-id=producer-1, topic=performancetest}         : 137263528.000
-producer-topic-metrics:compression-rate:{client-id=producer-1, topic=performancetest}   : 0.183
-producer-topic-metrics:record-error-rate:{client-id=producer-1, topic=performancetest}  : 0.000
-producer-topic-metrics:record-error-total:{client-id=producer-1, topic=performancetest} : 0.000
-producer-topic-metrics:record-retry-rate:{client-id=producer-1, topic=performancetest}  : 0.000
-producer-topic-metrics:record-retry-total:{client-id=producer-1, topic=performancetest} : 0.000
-producer-topic-metrics:record-send-rate:{client-id=producer-1, topic=performancetest}   : 88712.253
-producer-topic-metrics:record-send-total:{client-id=producer-1, topic=performancetest}  : 5000000.000
+808317 records sent, 161663.4 records/sec (38.54 MB/sec), 4.0 ms avg latency, 251.0 max latency.
+1423986 records sent, 284797.2 records/sec (67.90 MB/sec), 3.4 ms avg latency, 82.0 max latency.
+1689771 records sent, 337954.2 records/sec (80.57 MB/sec), 2.8 ms avg latency, 21.0 max latency.
+5000000 records sent, 270577.412198 records/sec (64.51 MB/sec), 3.18 ms avg latency, 251.00 ms max latency, 2 ms 50th, 6 ms 95th, 14 ms 99th, 21 ms 99.9th.
 ```
 
 ### Kafka Consumer Performance Testing
@@ -516,75 +350,142 @@ kafka-consumer-perf-test --topic performancetest --messages 15000000 --threads 1
 
 Example Output (Edited for readability):
 ```
-start.time = 2018-08-03 23:20:23:718
-end.time = 2018-08-03 23:21:36:460
-data.consumed.in.MB = 3915.3982
-MB.sec = 53.8258
-data.consumed.in.nMsg = 15000316
-nMsg.sec = 206212.5870
-rebalance.time.ms = 3088
-fetch.time.ms = 69654
-fetch.MB.sec = 56.2121
-fetch.nMsg.sec = 215354.6961
+start.time - 2018-08-09 00:04:56:595
+end.time - 2018-08-09 00:05:09:994
+data.consumed.in.MB - 3576.2787
+MB.sec - 266.9064
+data.consumed.in.nMsg - 15000000
+nMsg.sec - 1119486.5288
+rebalance.time.ms - 3044
+fetch.time.ms - 10355
+fetch.MB.sec - 345.3673
+fetch.nMsg.sec - 1448575.5674
 ```
 
-## Conclusion
-In this example I have tested the base 3 Kafka broker node deploy on a DC/OS Cluster running on AWS m3.xlarge instances. From my test observations with these fixed parameters set:
 - Topic: performancetest
-- Number of Records: 20M
-- Throughput: 5M (Set arbitrarily high to "max out")
-- Ack: 1 write
-        - This allows Kafka to acknowledge 1 write only and let the remaining 2 replicas write in the background
-- Buffer Memory: 67108864 (default)
-- Batch Size: 8196 (default)
-- Compression Type: none
+- Number of Messages to Consume: 1.5M
+- Threads: 5
 
-My Variable parameter was `record-size` in bytes which I averaged across 5 runs:
-
-**record-size: 1**
+Example Output (Edited for readability):
 ```
-20000000 records sent, 540088.034350 records/sec (0.52 MB/sec), 10.84 ms avg latency, 213.00 ms max latency, 3 ms 50th, 39 ms 95th, 56 ms 99th, 80 ms 99.9th.
-20000000 records sent, 527927.357196 records/sec (0.50 MB/sec), 11.80 ms avg latency, 372.00 ms max latency, 4 ms 50th, 36 ms 95th, 50 ms 99th, 63 ms 99.9th.
-20000000 records sent, 494743.351886 records/sec (0.47 MB/sec), 10.65 ms avg latency, 224.00 ms max latency, 3 ms 50th, 33 ms 95th, 52 ms 99th, 80 ms 99.9th.
-20000000 records sent, 523450.586265 records/sec (0.50 MB/sec), 11.30 ms avg latency, 295.00 ms max latency, 4 ms 50th, 38 ms 95th, 78 ms 99th, 262 ms 99.9th.
-20000000 records sent, 488448.200068 records/sec (0.47 MB/sec), 10.64 ms avg latency, 208.00 ms max latency, 3 ms 50th, 34 ms 95th, 49 ms 99th, 80 ms 99.9th.
-
-Average: 514931.5 records/sec (0.492 MB/sec), 11.05 ms avg latency, 262.4 ms avg max latency
+start.time - 2018-08-09 00:14:52:512
+end.time - 2018-08-09 00:15:03:801
+data.consumed.in.MB - 2151.4893
+MB.sec - 190.5828
+data.consumed.in.nMsg - 15000000
+nMsg.sec - 1328727.0795
+rebalance.time.ms - 3019
+fetch.time.ms - 8270
+fetch.MB.sec - 260.1559
+fetch.nMsg.sec - 1813784.7642
 ```
 
-**record-size: 10**
-```
-20000000 records sent, 469032.152154 records/sec (4.47 MB/sec), 10.76 ms avg latency, 260.00 ms max latency, 4 ms 50th, 40 ms 95th, 56 ms 99th, 88 ms 99.9th.
-20000000 records sent, 528485.360956 records/sec (5.04 MB/sec), 15.29 ms avg latency, 729.00 ms max latency, 3 ms 50th, 42 ms 95th, 61 ms 99th, 80 ms 99.9th.
-20000000 records sent, 473283.165318 records/sec (4.51 MB/sec), 12.00 ms avg latency, 549.00 ms max latency, 3 ms 50th, 40 ms 95th, 217 ms 99th, 510 ms 99.9th.
-20000000 records sent, 512150.777189 records/sec (4.88 MB/sec), 10.93 ms avg latency, 235.00 ms max latency, 4 ms 50th, 41 ms 95th, 59 ms 99th, 120 ms 99.9th.
-20000000 records sent, 523916.802012 records/sec (5.00 MB/sec), 10.58 ms avg latency, 219.00 ms max latency, 4 ms 50th, 38 ms 95th, 53 ms 99th, 73 ms 99.9th.
+## Understand baseline performance
 
-Average: 501,373.6 records/sec (4.78 MB/sec), 11.91 ms avg latency, 398.4 ms avg max latency
-```
+My variable parameter was `record-size` in bytes which I averaged across 5 runs:
 
-**record-size: 50**
+**Record Size: 250 bytes**:
 ```
-20000000 records sent, 439241.868535 records/sec (20.94 MB/sec), 11.36 ms avg latency, 203.00 ms max latency, 4 ms 50th, 42 ms 95th, 58 ms 99th, 80 ms 99.9th.
-20000000 records sent, 446558.153035 records/sec (21.29 MB/sec), 12.56 ms avg latency, 250.00 ms max latency, 4 ms 50th, 40 ms 95th, 71 ms 99th, 212 ms 99.9th.
-20000000 records sent, 457948.847114 records/sec (21.84 MB/sec), 12.41 ms avg latency, 305.00 ms max latency, 4 ms 50th, 45 ms 95th, 89 ms 99th, 136 ms 99.9th.
-20000000 records sent, 448239.539210 records/sec (21.37 MB/sec), 12.02 ms avg latency, 243.00 ms max latency, 3 ms 50th, 39 ms 95th, 74 ms 99th, 154 ms 99.9th.
-20000000 records sent, 508517.670989 records/sec (24.25 MB/sec), 10.81 ms avg latency, 214.00 ms max latency, 4 ms 50th, 39 ms 95th, 60 ms 99th, 112 ms 99.9th.
+5000000 records sent, 243510.446598 records/sec (58.06 MB/sec), 3.64 ms avg latency, 326.00 ms max latency, 2 ms 50th, 9 ms 95th, 19 ms 99th, 38 ms 99.9th.
+5000000 records sent, 268125.268125 records/sec (63.93 MB/sec), 3.13 ms avg latency, 265.00 ms max latency, 2 ms 50th, 7 ms 95th, 18 ms 99th, 33 ms 99.9th.
+5000000 records sent, 243831.073832 records/sec (58.13 MB/sec), 3.21 ms avg latency, 257.00 ms max latency, 3 ms 50th, 8 ms 95th, 18 ms 99th, 39 ms 99.9th.
+5000000 records sent, 270577.412198 records/sec (64.51 MB/sec), 3.18 ms avg latency, 251.00 ms max latency, 2 ms 50th, 6 ms 95th, 14 ms 99th, 21 ms 99.9th.
+5000000 records sent, 238435.860753 records/sec (56.85 MB/sec), 3.21 ms avg latency, 266.00 ms max latency, 2 ms 50th, 7 ms 95th, 18 ms 99th, 36 ms 99.9th.
 
-Average: 460,101.2 records/sec (21.94 MB/sec), 11.83 ms avg latency, 243 ms avg max latency
+Average: 252,896.1 records/sec, 60.3 MB/sec, 3.27 ms avg latency, 272.8 ms max latency
 ```
 
-**record-size: 100**
+**Record Size: 500 bytes**:
 ```
-20000000 records sent, 454710.803929 records/sec (43.36 MB/sec), 26.16 ms avg latency, 628.00 ms max latency, 9 ms 50th, 391 ms 95th, 573 ms 99th, 619 ms 99.9th.
-20000000 records sent, 421008.314914 records/sec (40.15 MB/sec), 23.00 ms avg latency, 649.00 ms max latency, 7 ms 50th, 336 ms 95th, 518 ms 99th, 630 ms 99.9th.
-20000000 records sent, 432591.439015 records/sec (41.26 MB/sec), 20.11 ms avg latency, 575.00 ms max latency, 5 ms 50th, 51 ms 95th, 109 ms 99th, 173 ms 99.9th.
-20000000 records sent, 387987.894778 records/sec (37.00 MB/sec), 23.93 ms avg latency, 760.00 ms max latency, 4 ms 50th, 55 ms 95th, 108 ms 99th, 159 ms 99.9th.
-20000000 records sent, 415006.640106 records/sec (39.58 MB/sec), 21.72 ms avg latency, 616.00 ms max latency, 5 ms 50th, 46 ms 95th, 86 ms 99th, 123 ms 99.9th.
+5000000 records sent, 250953.623770 records/sec (119.66 MB/sec), 3.96 ms avg latency, 268.00 ms max latency, 3 ms 50th, 13 ms 95th, 33 ms 99th, 62 ms 99.9th.
+5000000 records sent, 257479.787837 records/sec (122.78 MB/sec), 3.84 ms avg latency, 254.00 ms max latency, 3 ms 50th, 10 ms 95th, 22 ms 99th, 35 ms 99.9th.
+5000000 records sent, 244774.073530 records/sec (116.72 MB/sec), 3.78 ms avg latency, 270.00 ms max latency, 3 ms 50th, 10 ms 95th, 21 ms 99th, 39 ms 99.9th.
+5000000 records sent, 245591.630237 records/sec (117.11 MB/sec), 3.69 ms avg latency, 268.00 ms max latency, 3 ms 50th, 10 ms 95th, 19 ms 99th, 30 ms 99.9th.
+5000000 records sent, 251357.329580 records/sec (119.86 MB/sec), 3.53 ms avg latency, 253.00 ms max latency, 3 ms 50th, 9 ms 95th, 20 ms 99th, 42 ms 99.9th.
 
-Average: 422261.0 records/sec (40.27 MB/sec), 22.98 ms avg latency, 645.6 ms avg max latency 
+Average: 250,031.3 records/sec, 119.23 MB/sec, 3.76 ms avg latency, 262.6 ms max latency
 ```
-**WIP - record-size: 1000**
+
+**Record Size: 1 kB**
 ```
-20000000 records sent, 45113.019392 records/sec (43.02 MB/sec), 709.53 ms avg latency, 30154.00 ms max latency, 30 ms 50th, 698 ms 95th, 874 ms 99th, 948 ms 99.9th.
+5000000 records sent, 235938.089845 records/sec (225.01 MB/sec), 5.01 ms avg latency, 261.00 ms max latency, 3 ms 50th, 18 ms 95th, 61 ms 99th, 97 ms 99.9th.
+5000000 records sent, 231932.461267 records/sec (221.19 MB/sec), 5.62 ms avg latency, 265.00 ms max latency, 3 ms 50th, 22 ms 95th, 133 ms 99th, 160 ms 99.9th.
+5000000 records sent, 233404.910839 records/sec (222.59 MB/sec), 4.53 ms avg latency, 259.00 ms max latency, 3 ms 50th, 12 ms 95th, 30 ms 99th, 80 ms 99.9th.
+5000000 records sent, 238061.229348 records/sec (227.03 MB/sec), 4.61 ms avg latency, 255.00 ms max latency, 3 ms 50th, 15 ms 95th, 40 ms 99th, 59 ms 99.9th.
+5000000 records sent, 235194.505856 records/sec (224.30 MB/sec), 4.59 ms avg latency, 270.00 ms max latency, 3 ms 50th, 18 ms 95th, 49 ms 99th, 88 ms 99.9th.
+
+Average: 234,906.2 records/sec, 224.02 MB/sec, 4.87 ms avg latency, 262 ms max latency
 ```
+
+## Goal: Increase Throughput
+
+For increasing throughput of Producers, Confluent recommends:
+- batch.size: increase to 100000-200000 (default 16384)
+- linger.ms: increase to 10-100 (default 0)
+- compression.type = lz4 (default none)
+- acks = 1 (default 1)
+- buffer.memory: increase if there are a lot of partitions (default 33554432)
+
+For increasing throughput of Consumers, Confluent recommends:
+- fetch.min.bytes: increase to ~1000000 (default 1)
+
+
+### Lets try the minimum ranges on 10M records:
+- batch.size - 100000
+- linger.ms - 10
+- compression.type - lz4
+- acks - 1
+- buffer.memory - default
+
+Command:
+```
+kafka-producer-perf-test --topic performancetest --num-records 10000000 --record-size 250 --throughput 1000000 --producer-props acks=1 buffer.memory=67108864 compression.type=lz4 batch.size=100000 linger.ms=10 retries=0 bootstrap.servers=kafka-0-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-1-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-2-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025
+```
+
+Output:
+```
+10000000 records sent, 346188.465000 records/sec (82.54 MB/sec), 7.75 ms avg latency, 243.00 ms max latency, 8 ms 50th, 13 ms 95th, 23 ms 99th, 44 ms 99.9th.
+```
+
+### Lets try the maximum range parameters on 10M records:
+- batch.size - 200000
+- linger.ms - 100
+- compression.type - lz4
+- acks - 1
+- buffer.memory - default
+
+Command:
+```
+kafka-producer-perf-test --topic performancetest --num-records 10000000 --record-size 250 --throughput 1000000 --producer-props acks=1 buffer.memory=67108864 compression.type=lz4 batch.size=200000 linger.ms=100 retries=0 bootstrap.servers=kafka-0-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-1-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-2-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025
+```
+
+Output:
+```
+10000000 records sent, 349968.502835 records/sec (83.44 MB/sec), 61.24 ms avg latency, 372.00 ms max latency, 61 ms 50th, 105 ms 95th, 110 ms 99th, 122 ms 99.9th.
+```
+
+### Conclusions
+Both lower and upper range adjustments result in a >35% increase in throughput performance
+
+
+## Goal: Optimize for Latency
+For optimizing latency of Producers, Confluent recommends:
+- linger.ms - 0
+- compression.type - none
+- acks - 1
+
+For optimizing latency of Brokers, Confluent recommends:
+- num.replica.fetchers - increase if followers can't keep up with the leader (default = 1)
+
+For optimizing latency of Consumers, Confluent recommends:
+- fetch.min.bytes - 1 (default 1)
+
+## Goal: Optimize for Durability
+For optimizing durability of Procuers, Confluent recommends:
+- replication.factor - 3, configure per topic
+- acks - all
+- retries - 1
+- max.in.flight.requests.per.connection - 1 (default 5)
+	- to prevent out of order messages
+
+### Continue on
