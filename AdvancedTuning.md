@@ -643,11 +643,13 @@ Although increasing the Producer count to 15 increased my total throughput close
 As we increase the number of Kafka brokers in our cluster, we start to be able to tinker more with topic partitions. Partitions are a unit of parallelism in Kafka. 
 
 ### A standard formula for Partitions:
+```
 P = Throughput from producer to single partition
 C = Throughput from a single partition to a consumer
 T = Target throughput
 
 Required # of Partitions = Max (T/P, T/C)
+```
 
 So for example if my target throughput (T) is 10 million messages, Required # of partitions would be 10M/330K which is 30 partitions
 
