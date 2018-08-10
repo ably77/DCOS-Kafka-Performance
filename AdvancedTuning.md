@@ -709,7 +709,7 @@ Total Throughput: 3945584.014, 940.69 MB/sec, 20.45 ms avg latency, 382 ms avg m
 Increasing the partition count in our topic, we observe a similar/marginal increase in total throughput for our 15 Producers but we can clearly see that increasing the partition count brings us back to a latency that is actually acceptable by modern applications
 
 ### Conclusions
-By horizontally scaling our Kafka cluster as well as increasing the parallelism of our Producers, we can use the increased throughput parameters to achieve an aggregate 4.1 million messages per second on our single performancetest topic. This was all tested on a 9 broker node Kafka cluster running on DC/OS on AWS m3.xlarge instances, which is pretty impressive. AWS instances optimized for storage and networking may result in even better performance since Kafka is so heavily dependent on I/O and fast network performance over anything else.
+By horizontally scaling our Kafka cluster as well as increasing the parallelism of our Producers, we can use the increased throughput parameters to achieve an aggregate 4.1 million messages per second on our single performancetest topic. This was all tested on a 9 broker node Kafka cluster running on DC/OS on AWS m3.xlarge instances, which is pretty good. AWS instances optimized for storage and networking may result in even better performance since Kafka is so heavily dependent on I/O and fast network performance over anything else.
 
 # Other Design Goals
 
