@@ -537,6 +537,28 @@ Output:
 
 As we can see from above, our throughput for a single producer hasnt increased much, however in order to gain the benefits of horizontal scaling we will also throw multiple producers at the same topic to see how much total throughput we can get out of the Kafka deployment.
 
+## Increase Topic Partitions
+As we increase the number of Kafka brokers in our cluster, we start to be able to tinker more with topic partitions. Partitions are a unit of parallelism in Kafka.
+
+### A standard formula for Partitions:
+```
+P = Throughput from producer to single partition
+C = Throughput from a single partition to a consumer
+T = Target throughput
+
+Required # of Partitions = Max (T/P, T/C)
+```
+
+So for example if my target throughput (T) is 10 million messages, Required # of partitions would be 10M/330K which is 30 partitions
+
+### Create new topics/partitions
+
+Using the DC/OS CLI:
+```
+dcos confluent-kafka topic create performancetest2 --partitions 20 --replication 3
+dcos confluent-kafka topic create performancetest3 --partitions 30 --replication 3
+
+
 ## Running Multiple Producers in Parallel
 In order to attack this throughput problem with multiple producers in parallel, we will run the performance test as a service in DC/OS and scale it  to run multiple producers. Note that running multiple producers from the same node is less effective in this situation because our bottleneck may start to come from other places, such as the NIC. Keeping the producers on seperate nodes is more ideal for our current testing case as we can then remove the Producer as the throughput bottleneck.
 
@@ -564,7 +586,7 @@ Here is the example application definition for our performance test service that
   },
   "cpus": 4,
   "disk": 0,
-  "instances": 25,
+  "instances": 3,
   "maxLaunchDelaySeconds": 3600,
   "mem": 13000,
   "gpus": 0,
@@ -598,45 +620,98 @@ Description of Producer Service:
 
 Launch the marathon service:
 ```
-dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/confluent-producer.json
+dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/3producer-topic-performancetest.json
 ```
 
 Navigate to the UI --> Services --> confluent-producer --> logs --> Output (stdout) to view performance test results:
 ```
 (AT BEGINNING OF FILE)
 Marked '/' as rslave
-Prepared mount '{"flags":20480,"source":"\/var\/lib\/mesos\/slave\/slaves\/be46bdec-18e3-4a9d-b882-1eb124d2221a-S30\/frameworks\/be46bdec-18e3-4a9d-b882-1eb124d2221a-0001\/executors\/confluent-producer.4a51f576-9cbc-11e8-9d2a-0e2dc78649df\/runs\/ece3311d-87c2-40d6-a3e3-1f90d4f57c46","target":"\/var\/lib\/mesos\/slave\/provisioner\/containers\/ece3311d-87c2-40d6-a3e3-1f90d4f57c46\/backends\/overlay\/rootfses\/076582c2-9497-421d-998e-6f07b93559c3\/mnt\/mesos\/sandbox"}'
+Prepared mount '{"flags":20480,"source":"\/var\/lib\/mesos\/slave\/slaves\/0dfa2c36-eb7f-4c8d-885e-17473a4b931f-S16\/frameworks\/0dfa2c36-eb7f-4c8d-885e-17473a4b931f-0001\/executors\/3producer-topic-performancetest.f7cca75f-9cdd-11e8-bb49-1e817b469ba5\/runs\/ccc1b543-05e7-425a-ba17-fa23199dcc39","target":"\/var\/lib\/mesos\/slave\/provisioner\/containers\/ccc1b543-05e7-425a-ba17-fa23199dcc39\/backends\/overlay\/rootfses\/75cb27a8-d73c-4441-98ce-6b935cd67b49\/mnt\/mesos\/sandbox"}'
 Prepared mount '{"flags":14,"source":"proc","target":"\/proc","type":"proc"}'
-Executing pre-exec command '{"arguments":["mount","-n","-t","ramfs","ramfs","\/var\/lib\/mesos\/slave\/slaves\/be46bdec-18e3-4a9d-b882-1eb124d2221a-S30\/frameworks\/be46bdec-18e3-4a9d-b882-1eb124d2221a-0001\/executors\/confluent-producer.4a51f576-9cbc-11e8-9d2a-0e2dc78649df\/runs\/ece3311d-87c2-40d6-a3e3-1f90d4f57c46\/.secret-0e31e8a4-9ddf-42c4-ba99-dadc819ad0a3"],"shell":false,"value":"mount"}'
-Changing root to /var/lib/mesos/slave/provisioner/containers/ece3311d-87c2-40d6-a3e3-1f90d4f57c46/backends/overlay/rootfses/076582c2-9497-421d-998e-6f07b93559c3
-2467414 records sent, 493482.8 records/sec (117.66 MB/sec), 9.4 ms avg latency, 271.0 max latency.
-3531271 records sent, 705689.6 records/sec (168.25 MB/sec), 7.4 ms avg latency, 47.0 max latency.
-3825728 records sent, 764534.0 records/sec (182.28 MB/sec), 7.3 ms avg latency, 60.0 max latency.
-10000000 records sent, 655694.708544 records/sec (156.33 MB/sec), 7.84 ms avg latency, 271.00 ms max latency, 7 ms 50th, 13 ms 95th, 25 ms 99th, 46 ms 99.9th.
+Executing pre-exec command '{"arguments":["mount","-n","-t","ramfs","ramfs","\/var\/lib\/mesos\/slave\/slaves\/0dfa2c36-eb7f-4c8d-885e-17473a4b931f-S16\/frameworks\/0dfa2c36-eb7f-4c8d-885e-17473a4b931f-0001\/executors\/3producer-topic-performancetest.f7cca75f-9cdd-11e8-bb49-1e817b469ba5\/runs\/ccc1b543-05e7-425a-ba17-fa23199dcc39\/.secret-86753752-559d-4713-a5b7-1d9ca77ff5f0"],"shell":false,"value":"mount"}'
+Changing root to /var/lib/mesos/slave/provisioner/containers/ccc1b543-05e7-425a-ba17-fa23199dcc39/backends/overlay/rootfses/75cb27a8-d73c-4441-98ce-6b935cd67b49
+3495216 records sent, 698205.4 records/sec (166.47 MB/sec), 9.9 ms avg latency, 211.0 max latency.
+4205303 records sent, 840052.5 records/sec (200.28 MB/sec), 9.9 ms avg latency, 96.0 max latency.
+10000000 records sent, 780031.201248 records/sec (185.97 MB/sec), 9.63 ms avg latency, 211.00 ms max latency, 9 ms 50th, 16 ms 95th, 26 ms 99th, 58 ms 99.9th.
 ```
 
 ### Example output from 3 Producers
 Since I have scaled up to 10 nodes in my DC/OS cluster but Kafka is only consuming 7 nodes, I have 3 isolated nodes available for my Producers to utilize for this test.
+
+Output from Logs:
 ```
+Service 1: 10000000 records sent, 780031.201248 records/sec (185.97 MB/sec), 9.63 ms avg latency, 211.00 ms max latency, 9 ms 50th, 16 ms 95th, 26 ms 99th, 58 ms 99.9th.
+Service 2: 10000000 records sent, 766577.232656 records/sec (182.77 MB/sec), 9.25 ms avg latency, 241.00 ms max latency, 9 ms 50th, 16 ms 95th, 62 ms 99th, 118 ms 99.9th.
+Service 3: 10000000 records sent, 761208.799574 records/sec (181.49 MB/sec), 9.00 ms avg latency, 236.00 ms max latency, 8 ms 50th, 15 ms 95th, 33 ms 99th, 78 ms 99.9th.
+
+Total Throughput: 2307817.23 records/sec, 550.23 MB/sec, 9.29 ms avg latency, 229.3 ms avg max latency
+```
+
+As you can see from above, running multiple Producers in parallel I was able to push over 2.3M records/sec to my single `performancetest3` topic. We could probably handle even more, which we will continue to test below
+
+Remove the service:
+```
+dcos marathon app remove 3producer-topic-performancetest
 ```
 
 ### Example output from 10 Producers
-In my case, I have a 10 node DC/OS cluster, running our 6x broker Kafka configuration. The example aggregate throughput is below. Since we are running all of these in parallel, I can add the avg throughput values together to determine total throughput:
 
+Deploy the service:
 ```
-Node 1: 10000000 records sent, 349027.957139 records/sec (83.21 MB/sec), 75.34 ms avg latency, 402.00 ms max latency, 69 ms 50th, 152 ms 95th, 315 ms 99th, 370 ms 99.9th.
-Node 2: 10000000 records sent, 357066.342927 records/sec (85.13 MB/sec), 76.01 ms avg latency, 362.00 ms max latency, 76 ms 50th, 133 ms 95th, 186 ms 99th, 232 ms 99.9th.
-Node 3: 10000000 records sent, 351877.265210 records/sec (83.89 MB/sec), 73.77 ms avg latency, 341.00 ms max latency, 63 ms 50th, 109 ms 95th, 150 ms 99th, 223 ms 99.9th.
-Node 4: 10000000 records sent, 340448.711402 records/sec (81.17 MB/sec), 74.89 ms avg latency, 393.00 ms max latency, 71 ms 50th, 119 ms 95th, 154 ms 99th, 205 ms 99.9th.
-Node 5: 10000000 records sent, 283326.250177 records/sec (67.55 MB/sec), 71.76 ms avg latency, 394.00 ms max latency, 66 ms 50th, 118 ms 95th, 168 ms 99th, 227 ms 99.9th.
-Node 6: 10000000 records sent, 345721.694036 records/sec (82.43 MB/sec), 75.39 ms avg latency, 472.00 ms max latency, 79 ms 50th, 158 ms 95th, 370 ms 99th, 447 ms 99.9th.
-Node 7: 10000000 records sent, 283326.250177 records/sec (67.55 MB/sec), 71.76 ms avg latency, 394.00 ms max latency, 66 ms 50th, 118 ms 95th, 168 ms 99th, 227 ms 99.9th.
-Node 8: 10000000 records sent, 350299.506078 records/sec (83.52 MB/sec), 75.47 ms avg latency, 352.00 ms max latency, 78 ms 50th, 144 ms 95th, 217 ms 99th, 266 ms 99.9th.
-Node 9: 10000000 records sent, 292963.028066 records/sec (69.85 MB/sec), 73.41 ms avg latency, 416.00 ms max latency, 75 ms 50th, 131 ms 95th, 210 ms 99th, 265 ms 99.9th.
-Node 10: 10000000 records sent, 279033.428205 records/sec (66.53 MB/sec), 72.33 ms avg latency, 387.00 ms max latency, 72 ms 50th, 123 ms 95th, 166 ms 99th, 238 ms 99.9th.
+dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/10producer-topic-performancetest3.json
+```
 
-Total Throughput: 3233090.43 records/sec, 770.83 MB/sec, 74.01 ms avg latency, 391.3 ms max latency
+Output from Logs:
 ```
+10000000 records sent, 692041.522491 records/sec (165.00 MB/sec), 14.24 ms avg latency, 315.00 ms max latency, 10 ms 50th, 42 ms 95th, 99 ms 99th, 278 ms 99.9th.
+10000000 records sent, 697788.012002 records/sec (166.37 MB/sec), 14.38 ms avg latency, 262.00 ms max latency, 10 ms 50th, 43 ms 95th, 120 ms 99th, 235 ms 99.9th.
+10000000 records sent, 697009.827839 records/sec (166.18 MB/sec), 14.14 ms avg latency, 269.00 ms max latency, 10 ms 50th, 35 ms 95th, 127 ms 99th, 236 ms 99.9th.
+10000000 records sent, 689512.514652 records/sec (164.39 MB/sec), 14.84 ms avg latency, 264.00 ms max latency, 10 ms 50th, 45 ms 95th, 118 ms 99th, 232 ms 99.9th.
+10000000 records sent, 691658.597316 records/sec (164.90 MB/sec), 13.77 ms avg latency, 279.00 ms max latency, 10 ms 50th, 32 ms 95th, 122 ms 99th, 250 ms 99.9th.
+10000000 records sent, 687474.219717 records/sec (163.91 MB/sec), 14.39 ms avg latency, 276.00 ms max latency, 10 ms 50th, 36 ms 95th, 140 ms 99th, 245 ms 99.9th.
+10000000 records sent, 701705.143499 records/sec (167.30 MB/sec), 13.29 ms avg latency, 248.00 ms max latency, 10 ms 50th, 29 ms 95th, 112 ms 99th, 215 ms 99.9th.
+10000000 records sent, 657073.395098 records/sec (156.66 MB/sec), 13.41 ms avg latency, 235.00 ms max latency, 10 ms 50th, 30 ms 95th, 103 ms 99th, 188 ms 99.9th.
+10000000 records sent, 677782.296326 records/sec (161.60 MB/sec), 12.68 ms avg latency, 345.00 ms max latency, 10 ms 50th, 22 ms 95th, 99 ms 99th, 318 ms 99.9th.
+10000000 records sent, 673582.109659 records/sec (160.59 MB/sec), 12.58 ms avg latency, 244.00 ms max latency, 10 ms 50th, 22 ms 95th, 101 ms 99th, 224 ms 99.9th.
+
+Total Throughput: 6865627.639 records/sec, 1636.9 MB/sec, 13.77 ms avg latency, 273.7 ms avg max latency
+```
+
+Remove the Service:
+```
+dcos marathon app remove 10producer-topic-performancetest3
+```
+
+### Example output from 15 Producers
+
+Deploy the service:
+```
+dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/15producer-topic-performancetest3.json
+```
+
+Output from logs:
+```
+10000000 records sent, 646956.071683 records/sec (154.25 MB/sec), 30.36 ms avg latency, 292.00 ms max latency, 11 ms 50th, 120 ms 95th, 168 ms 99th, 240 ms 99.9th.
+10000000 records sent, 606906.597075 records/sec (144.70 MB/sec), 79.93 ms avg latency, 345.00 ms max latency, 71 ms 50th, 188 ms 95th, 257 ms 99th, 329 ms 99.9th.
+10000000 records sent, 632071.297642 records/sec (150.70 MB/sec), 34.52 ms avg latency, 333.00 ms max latency, 12 ms 50th, 120 ms 95th, 172 ms 99th, 275 ms 99.9th.
+10000000 records sent, 648929.266710 records/sec (154.72 MB/sec), 79.73 ms avg latency, 276.00 ms max latency, 70 ms 50th, 186 ms 95th, 226 ms 99th, 257 ms 99.9th.
+10000000 records sent, 620385.880017 records/sec (147.91 MB/sec), 82.04 ms avg latency, 351.00 ms max latency, 72 ms 50th, 197 ms 95th, 278 ms 99th, 336 ms 99.9th.
+10000000 records sent, 671591.672263 records/sec (160.12 MB/sec), 82.54 ms avg latency, 376.00 ms max latency, 74 ms 50th, 186 ms 95th, 265 ms 99th, 355 ms 99.9th.
+10000000 records sent, 645994.832041 records/sec (154.02 MB/sec), 79.37 ms avg latency, 376.00 ms max latency, 70 ms 50th, 202 ms 95th, 281 ms 99th, 351 ms 99.9th.
+10000000 records sent, 660938.532716 records/sec (157.58 MB/sec), 78.04 ms avg latency, 298.00 ms max latency, 72 ms 50th, 181 ms 95th, 248 ms 99th, 283 ms 99.9th.
+10000000 records sent, 587199.060482 records/sec (140.00 MB/sec), 73.56 ms avg latency, 343.00 ms max latency, 64 ms 50th, 182 ms 95th, 254 ms 99th, 325 ms 99.9th.
+10000000 records sent, 685729.959542 records/sec (163.49 MB/sec), 82.14 ms avg latency, 332.00 ms max latency, 72 ms 50th, 193 ms 95th, 258 ms 99th, 313 ms 99.9th.
+10000000 records sent, 611471.199706 records/sec (145.79 MB/sec), 77.32 ms avg latency, 319.00 ms max latency, 69 ms 50th, 179 ms 95th, 236 ms 99th, 285 ms 99.9th.
+10000000 records sent, 607053.967098 records/sec (144.73 MB/sec), 75.48 ms avg latency, 321.00 ms max latency, 65 ms 50th, 179 ms 95th, 255 ms 99th, 296 ms 99.9th.
+10000000 records sent, 604156.597390 records/sec (144.04 MB/sec), 76.26 ms avg latency, 272.00 ms max latency, 69 ms 50th, 180 ms 95th, 233 ms 99th, 257 ms 99.9th.
+10000000 records sent, 585651.537335 records/sec (139.63 MB/sec), 74.30 ms avg latency, 344.00 ms max latency, 66 ms 50th, 181 ms 95th, 253 ms 99th, 323 ms 99.9th.
+10000000 records sent, 622781.341471 records/sec (148.48 MB/sec), 75.83 ms avg latency, 314.00 ms max latency, 69 ms 50th, 178 ms 95th, 234 ms 99th, 279 ms 99.9th.
+
+Total Throughput: 9437817.81 records/sec, 2250.16 MB/sec, 72.09 ms avg latency, 326.13 ms av max latency
+```
+
+As you can see from above, our 6 broker node Kafka cluster is holding up a throughput of > 9M messages/sec. It is important to note though that there was an increase in latency here. We will continue to scale the cluster to 9 broker nodes to see if this relieves anything.
 
 ### Kafka Cluster Parameters
 - 9x Brokers
@@ -666,128 +741,9 @@ deploy (serial strategy) (COMPLETE)
    └─ kafka-8:[broker] (COMPLETE)
 ```
 
-### Example output from 10 Producers
-Using the same 10 Nodes we already SSH'ed into
-
-Command:
-```
-kafka-producer-perf-test --topic performancetest --num-records 5000000 --record-size 250 --throughput 1000000 --producer-props acks=1 buffer.memory=67108864 compression.type=none batch.size=8196 bootstrap.servers=kafka-0-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-1-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-2-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025
-```
-
-Output:
-```
-Node 1: 10000000 records sent, 344044.588179 records/sec (82.03 MB/sec), 72.31 ms avg latency, 488.00 ms max latency, 65 ms 50th, 120 ms 95th, 402 ms 99th, 458 ms 99.9th.
-Node 2: 10000000 records sent, 337461.613741 records/sec (80.46 MB/sec), 71.93 ms avg latency, 486.00 ms max latency, 78 ms 50th, 127 ms 95th, 170 ms 99th, 251 ms 99.9th.
-Node 3: 10000000 records sent, 338960.070504 records/sec (80.81 MB/sec), 72.04 ms avg latency, 377.00 ms max latency, 69 ms 50th, 117 ms 95th, 151 ms 99th, 231 ms 99.9th.
-Node 4: 10000000 records sent, 340761.943706 records/sec (81.24 MB/sec), 71.91 ms avg latency, 495.00 ms max latency, 73 ms 50th, 118 ms 95th, 142 ms 99th, 206 ms 99.9th.
-Node 5: 10000000 records sent, 325150.382052 records/sec (77.52 MB/sec), 70.54 ms avg latency, 418.00 ms max latency, 71 ms 50th, 122 ms 95th, 295 ms 99th, 395 ms 99.9th.
-Node 6: 10000000 records sent, 339431.791182 records/sec (80.93 MB/sec), 70.79 ms avg latency, 461.00 ms max latency, 64 ms 50th, 110 ms 95th, 131 ms 99th, 198 ms 99.9th.
-Node 7: 10000000 records sent, 284859.706595 records/sec (67.92 MB/sec), 69.19 ms avg latency, 396.00 ms max latency, 60 ms 50th, 105 ms 95th, 130 ms 99th, 227 ms 99.9th.
-Node 8: 10000000 records sent, 348407.776462 records/sec (83.07 MB/sec), 71.67 ms avg latency, 421.00 ms max latency, 68 ms 50th, 118 ms 95th, 306 ms 99th, 392 ms 99.9th.
-Node 9: 10000000 records sent, 286935.812459 records/sec (68.41 MB/sec), 74.72 ms avg latency, 395.00 ms max latency, 81 ms 50th, 134 ms 95th, 191 ms 99th, 300 ms 99.9th.
-Node 10: 10000000 records sent, 274280.698867 records/sec (65.39 MB/sec), 69.77 ms avg latency, 522.00 ms max latency, 67 ms 50th, 118 ms 95th, 279 ms 99th, 391 ms 99.9th.
-
-Total Throughput: 3220294.384 records/sec, 767.78 MB/sec, 71.49 ms avg latency, 445.9 ms max latency
-```
-
-### Initial Thoughts
-Increasing from 6 broker nodes to 9 broker nodes did not increase my total throughput for my 10 Producers running in parallel. Instead, lets try running 15 producers in parallel to see if we see further improvements through horizontal scaling
-
-### Example output from 15 Producers:
-```
-Node 1: 10000000 records sent, 230139.003958 records/sec (54.87 MB/sec), 2388.03 ms avg latency, 11502.00 ms max latency, 13 ms 50th, 192 ms 95th, 606 ms 99th, 810 ms 99.9th.
-Node 2: 10000000 records sent, 230776.331579 records/sec (55.02 MB/sec), 2158.57 ms avg latency, 10970.00 ms max latency, 13 ms 50th, 245 ms 95th, 497 ms 99th, 658 ms 99.9th.
-Node 3: 10000000 records sent, 251048.125926 records/sec (59.85 MB/sec), 1090.09 ms avg latency, 8554.00 ms max latency, 1922 ms 50th, 7103 ms 95th, 8124 ms 99th, 8439 ms 99.9th.
-Node 4: 10000000 records sent, 241995.982867 records/sec (57.70 MB/sec), 1034.57 ms avg latency, 9409.00 ms max latency, 13 ms 50th, 246 ms 95th, 573 ms 99th, 685 ms 99.9th.
-Node 5: 10000000 records sent, 322216.851941 records/sec (76.82 MB/sec), 87.41 ms avg latency, 1032.00 ms max latency, 14 ms 50th, 330 ms 95th, 455 ms 99th, 490 ms 99.9th.
-Node 6: 10000000 records sent, 323143.540361 records/sec (77.04 MB/sec), 86.17 ms avg latency, 1118.00 ms max latency, 14 ms 50th, 248 ms 95th, 466 ms 99th, 553 ms 99.9th.
-Node 7: 10000000 records sent, 238299.494805 records/sec (56.82 MB/sec), 69.08 ms avg latency, 1213.00 ms max latency, 20 ms 50th, 543 ms 95th, 840 ms 99th, 1149 ms 99.9th.
-Node 8: 10000000 records sent, 227531.285552 records/sec (54.25 MB/sec), 2438.05 ms avg latency, 14213.00 ms max latency, 13 ms 50th, 181 ms 95th, 591 ms 99th, 810 ms 99.9th.
-Node 9: 10000000 records sent, 197226.988541 records/sec (47.02 MB/sec), 663.84 ms avg latency, 7669.00 ms max latency, 970 ms 50th, 5665 ms 95th, 7074 ms 99th, 7596 ms 99.9th.
-Node 10: 10000000 records sent, 199433.608552 records/sec (47.55 MB/sec), 962.04 ms avg latency, 9687.00 ms max latency, 13 ms 50th, 185 ms 95th, 447 ms 99th, 515 ms 99.9th.
-Node 11: 10000000 records sent, 323373.431639 records/sec (77.10 MB/sec), 87.48 ms avg latency, 1165.00 ms max latency, 14 ms 50th, 226 ms 95th, 557 ms 99th, 644 ms 99.9th.
-Node 12: 10000000 records sent, 311847.070197 records/sec (74.35 MB/sec), 89.42 ms avg latency, 1085.00 ms max latency, 25 ms 50th, 641 ms 95th, 944 ms 99th, 1048 ms 99.9th.
-Node 13: 10000000 records sent, 328871.641398 records/sec (78.41 MB/sec), 85.25 ms avg latency, 1028.00 ms max latency, 13 ms 50th, 259 ms 95th, 491 ms 99th, 580 ms 99.9th.
-Node 14: 10000000 records sent, 246159.905475 records/sec (58.69 MB/sec), 1152.43 ms avg latency, 8921.00 ms max latency, 13 ms 50th, 198 ms 95th, 531 ms 99th, 615 ms 99.9th.
-Node 15: 10000000 records sent, 236468.112275 records/sec (56.38 MB/sec), 2053.82 ms avg latency, 11852.00 ms max latency, 13 ms 50th, 201 ms 95th, 419 ms 99th, 575 ms 99.9th.
-
-Total Throughput: 3908531.375 records/sec, 931.87 MB/sec, 963.08 ms avg latency, 6627.8 ms max latency
-```
-
-### Initial Thoughts
-Although increasing the Producer count to 15 increased my total throughput closer to 4M messages/sec, we also took a significant hit in terms of latency
-
-## Increase Topic Partitions
-As we increase the number of Kafka brokers in our cluster, we start to be able to tinker more with topic partitions. Partitions are a unit of parallelism in Kafka. 
-
-### A standard formula for Partitions:
-```
-P = Throughput from producer to single partition
-C = Throughput from a single partition to a consumer
-T = Target throughput
-
-Required # of Partitions = Max (T/P, T/C)
-```
-
-So for example if my target throughput (T) is 10 million messages, Required # of partitions would be 10M/330K which is 30 partitions
-
-### Create new topics/partitions
-
-Using the DC/OS CLI:
-```
-dcos confluent-kafka topic create performancetest2 --partitions 20 --replication 3
-dcos confluent-kafka topic create performancetest3 --partitions 30 --replication 3
-```
-
-### Run the Kafka Performance Test
-
-**20 partitions - 15 Producers**
-```
-Node 1: 10000000 records sent, 317007.449675 records/sec (75.58 MB/sec), 30.91 ms avg latency, 728.00 ms max latency, 10 ms 50th, 100 ms 95th, 169 ms 99th, 229 ms 99.9th.
-Node 2: 10000000 records sent, 237535.333381 records/sec (56.63 MB/sec), 26.70 ms avg latency, 662.00 ms max latency, 11 ms 50th, 149 ms 95th, 264 ms 99th, 503 ms 99.9th.
-Node 3: 10000000 records sent, 321843.519681 records/sec (76.73 MB/sec), 31.37 ms avg latency, 576.00 ms max latency, 10 ms 50th, 172 ms 95th, 378 ms 99th, 548 ms 99.9th.
-Node 4: 10000000 records sent, 243421.533069 records/sec (58.04 MB/sec), 27.46 ms avg latency, 466.00 ms max latency, 12 ms 50th, 97 ms 95th, 229 ms 99th, 362 ms 99.9th.
-Node 5: 10000000 records sent, 245978.255522 records/sec (58.65 MB/sec), 27.56 ms avg latency, 709.00 ms max latency, 12 ms 50th, 188 ms 95th, 320 ms 99th, 460 ms 99.9th.
-Node 6: 10000000 records sent, 244313.600938 records/sec (58.25 MB/sec), 31.45 ms avg latency, 718.00 ms max latency, 10 ms 50th, 96 ms 95th, 174 ms 99th, 421 ms 99.9th.
-Node 7: 10000000 records sent, 230435.984883 records/sec (54.94 MB/sec), 26.91 ms avg latency, 737.00 ms max latency, 11 ms 50th, 109 ms 95th, 235 ms 99th, 289 ms 99.9th.
-Node 8: 10000000 records sent, 219524.509912 records/sec (52.34 MB/sec), 23.62 ms avg latency, 701.00 ms max latency, 11 ms 50th, 65 ms 95th, 141 ms 99th, 253 ms 99.9th.
-Node 9: 10000000 records sent, 238982.888825 records/sec (56.98 MB/sec), 27.04 ms avg latency, 522.00 ms max latency, 13 ms 50th, 169 ms 95th, 345 ms 99th, 493 ms 99.9th.
-Node 10: 10000000 records sent, 229911.484079 records/sec (54.82 MB/sec), 24.58 ms avg latency, 479.00 ms max latency, 12 ms 50th, 95 ms 95th, 213 ms 99th, 282 ms 99.9th.
-Node 11: 10000000 records sent, 315826.043016 records/sec (75.30 MB/sec), 30.60 ms avg latency, 705.00 ms max latency, 11 ms 50th, 83 ms 95th, 145 ms 99th, 285 ms 99.9th.
-Node 12: 10000000 records sent, 314090.081035 records/sec (74.88 MB/sec), 30.82 ms avg latency, 607.00 ms max latency, 10 ms 50th, 84 ms 95th, 151 ms 99th, 219 ms 99.9th.
-Node 13: 10000000 records sent, 329902.348905 records/sec (78.65 MB/sec), 31.30 ms avg latency, 689.00 ms max latency, 10 ms 50th, 108 ms 95th, 236 ms 99th, 438 ms 99.9th.
-Node 14: 10000000 records sent, 309645.455953 records/sec (73.83 MB/sec), 28.62 ms avg latency, 591.00 ms max latency, 11 ms 50th, 109 ms 95th, 162 ms 99th, 214 ms 99.9th.
-Node 15: 10000000 records sent, 317007.449675 records/sec (75.58 MB/sec), 30.91 ms avg latency, 728.00 ms max latency, 10 ms 50th, 100 ms 95th, 169 ms 99th, 229 ms 99.9th.
-
-Total Throughput: 4115425.94 records/sec, 981.2 MB/sec, 28.66 ms avg latency, 634.53 ms avg max latency
-```
-
-**30 partitions - 15 Producers**
-```
-Node 1: 10000000 records sent, 243220.235924 records/sec (57.99 MB/sec), 19.67 ms avg latency, 337.00 ms max latency, 10 ms 50th, 61 ms 95th, 168 ms 99th, 283 ms 99.9th.
-Node 2: 10000000 records sent, 243617.228610 records/sec (58.08 MB/sec), 23.53 ms avg latency, 455.00 ms max latency, 11 ms 50th, 107 ms 95th, 238 ms 99th, 381 ms 99.9th.
-Node 3: 10000000 records sent, 308289.915837 records/sec (73.50 MB/sec), 20.48 ms avg latency, 427.00 ms max latency, 10 ms 50th, 84 ms 95th, 204 ms 99th, 368 ms 99.9th.
-Node 4: 10000000 records sent, 222786.614980 records/sec (53.12 MB/sec), 19.44 ms avg latency, 357.00 ms max latency, 10 ms 50th, 66 ms 95th, 138 ms 99th, 276 ms 99.9th.
-Node 5: 10000000 records sent, 230239.679506 records/sec (54.89 MB/sec), 20.55 ms avg latency, 390.00 ms max latency, 11 ms 50th, 97 ms 95th, 178 ms 99th, 283 ms 99.9th.
-Node 6: 10000000 records sent, 227826.760531 records/sec (54.32 MB/sec), 20.35 ms avg latency, 463.00 ms max latency, 11 ms 50th, 85 ms 95th, 177 ms 99th, 252 ms 99.9th.
-Node 7: 10000000 records sent, 220774.919969 records/sec (52.64 MB/sec), 18.53 ms avg latency, 340.00 ms max latency, 11 ms 50th, 64 ms 95th, 152 ms 99th, 235 ms 99.9th.
-Node 8: 10000000 records sent, 234868.591023 records/sec (56.00 MB/sec), 22.15 ms avg latency, 429.00 ms max latency, 11 ms 50th, 93 ms 95th, 210 ms 99th, 286 ms 99.9th.
-Node 9: 10000000 records sent, 226551.880381 records/sec (54.01 MB/sec), 19.47 ms avg latency, 312.00 ms max latency, 11 ms 50th, 80 ms 95th, 168 ms 99th, 266 ms 99.9th.
-Node 10: 10000000 records sent, 218307.245617 records/sec (52.05 MB/sec), 19.69 ms avg latency, 388.00 ms max latency, 11 ms 50th, 69 ms 95th, 158 ms 99th, 265 ms 99.9th.
-Node 11: 10000000 records sent, 318451.054073 records/sec (75.92 MB/sec), 20.24 ms avg latency, 383.00 ms max latency, 10 ms 50th, 70 ms 95th, 160 ms 99th, 240 ms 99.9th. 
-Node 12: 10000000 records sent, 300282.265329 records/sec (71.59 MB/sec), 20.77 ms avg latency, 382.00 ms max latency, 10 ms 50th, 86 ms 95th, 185 ms 99th, 245 ms 99.9th.
-Node 13: 10000000 records sent, 314445.632350 records/sec (74.97 MB/sec), 19.96 ms avg latency, 416.00 ms max latency, 10 ms 50th, 85 ms 95th, 196 ms 99th, 343 ms 99.9th.
-Node 14: 10000000 records sent, 317389.786397 records/sec (75.67 MB/sec), 21.14 ms avg latency, 317.00 ms max latency, 10 ms 50th, 82 ms 95th, 166 ms 99th, 252 ms 99.9th.
-Node 15: 10000000 records sent, 318532.203606 records/sec (75.94 MB/sec), 20.81 ms avg latency, 335.00 ms max latency, 10 ms 50th, 94 ms 95th, 186 ms 99th, 263 ms 99.9th.
-
-Total Throughput: 3945584.014, 940.69 MB/sec, 20.45 ms avg latency, 382 ms avg max latency
-```
-
-#### Initial Thoughts
-Increasing the partition count in our topic, we observe a similar/marginal increase in total throughput for our 15 Producers but we can clearly see that increasing the partition count brings us back to a latency that is actually acceptable by modern applications
 
 ### Conclusions
-By horizontally scaling our Kafka cluster as well as increasing the parallelism of our Producers, we can use the increased throughput parameters to achieve an aggregate 4.1 million messages per second on our single performancetest topic. This was all tested on a 9 broker node Kafka cluster running on DC/OS on AWS m3.xlarge instances, which is pretty good. AWS instances optimized for storage and networking may result in even better performance since Kafka is so heavily dependent on I/O and fast network performance over anything else.
+By horizontally scaling our Kafka cluster as well as increasing the parallelism of our Producers, we can use the increased throughput parameters to achieve an aggregate >15 million messages per second on our single performancetest topic. This was all tested on a 9 broker node Kafka cluster running on DC/OS on AWS m3.xlarge instances, which is pretty good. AWS instances optimized for storage and networking may result in even better performance since Kafka is so heavily dependent on I/O and fast network performance over anything else.
 
 # Other Design Goals
 
