@@ -486,9 +486,16 @@ Both lower and upper range adjustments result in a >30% increase in throughput p
 In my case, increasing fetch.min.bytes from 1 --> 1000000 only resulted in an increase of 0.5% throughput in message consumption from 1087114 messages to 1092259.5209.
 
 ## Horizontal Scale
-Now that we have reached a "peak" in our current configuration (3CPU, 12GB MEM, 25GB DISK) lets horizontally scale our cluster to see what performance benefits we can gain
+Now that we have reached a "peak" in our current configuration (3CPU, 12GB MEM, 25GB DISK) lets horizontally scale our cluster to see what performance benefits we can gain. Begin so by adding some nodes to your DC/OS cluster. We started this guide with 4, and for the rest of this guide we will test using 10 private agents
 
-### Cluster Parameters
+### DC/OS Cluster Prerequisites
+- 1 Master
+- 10 Private Agents
+- DC/OS CLI Installed and authenticated to your Local Machine
+- AWS Instance Type: m3.xlarge - 4vCPU, 15GB RAM See here for more recommended instance types by Confluent
+	- EBS Backed Storage - 60 GB
+
+### Kafka Cluster Parameters
 - 6x Brokers
 - 3 CPU
 - 12GB MEM
@@ -535,7 +542,7 @@ In order to attack this throughput problem with multiple producers in parallel, 
 
 Follow the SSH instructions above and run the Confluent Kafka Docker image on every single agent in your DC/OS cluster. We can then use something like tmux in order to mirror multiple producers in parallel all hitting the same performancetest topic that we have been testing on.
 
-### Example output from 10 Agents
+### Example output from 10 Producers
 In my case, I have a 10 node DC/OS cluster, running our 6x broker Kafka configuration. The example aggregate throughput is below. Since we are running all of these in parallel, I can add the avg throughput values together to determine total throughput:
 ```
 Node 1: 10000000 records sent, 349027.957139 records/sec (83.21 MB/sec), 75.34 ms avg latency, 402.00 ms max latency, 69 ms 50th, 152 ms 95th, 315 ms 99th, 370 ms 99.9th.
@@ -551,8 +558,154 @@ Node 10: 10000000 records sent, 279033.428205 records/sec (66.53 MB/sec), 72.33 
 
 Total Throughput: 3233090.43 records/sec, 770.83 MB/sec, 74.01 ms avg latency, 391.3 ms max latency
 
+### Kafka Cluster Parameters
+- 9x Brokers
+- 3 CPU
+- 12GB MEM
+- 25 GB Disk
+- 512 MB JVM Heap Size
+
+To validate that the deployment is correct:
+```
+dcos confluent-kafka plan status deploy
+```
+
+Output should look similar to below:
+```
+$ dcos confluent-kafka plan status deploy
+deploy (serial strategy) (COMPLETE)
+└─ broker (serial strategy) (COMPLETE)
+   ├─ kafka-0:[broker] (COMPLETE)
+   ├─ kafka-1:[broker] (COMPLETE)
+   ├─ kafka-2:[broker] (COMPLETE)
+   ├─ kafka-3:[broker] (COMPLETE)
+   ├─ kafka-4:[broker] (COMPLETE)
+   ├─ kafka-5:[broker] (COMPLETE)
+   ├─ kafka-6:[broker] (COMPLETE)
+   ├─ kafka-7:[broker] (COMPLETE)
+   └─ kafka-8:[broker] (COMPLETE)
+```
+
+### Example output from 10 Producers
+Using the same 10 Nodes we already SSH'ed into
+
+Command:
+```
+kafka-producer-perf-test --topic performancetest --num-records 5000000 --record-size 250 --throughput 1000000 --producer-props acks=1 buffer.memory=67108864 compression.type=none batch.size=8196 bootstrap.servers=kafka-0-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-1-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-2-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025
+```
+
+Output:
+```
+Node 1: 10000000 records sent, 344044.588179 records/sec (82.03 MB/sec), 72.31 ms avg latency, 488.00 ms max latency, 65 ms 50th, 120 ms 95th, 402 ms 99th, 458 ms 99.9th.
+Node 2: 10000000 records sent, 337461.613741 records/sec (80.46 MB/sec), 71.93 ms avg latency, 486.00 ms max latency, 78 ms 50th, 127 ms 95th, 170 ms 99th, 251 ms 99.9th.
+Node 3: 10000000 records sent, 338960.070504 records/sec (80.81 MB/sec), 72.04 ms avg latency, 377.00 ms max latency, 69 ms 50th, 117 ms 95th, 151 ms 99th, 231 ms 99.9th.
+Node 4: 10000000 records sent, 340761.943706 records/sec (81.24 MB/sec), 71.91 ms avg latency, 495.00 ms max latency, 73 ms 50th, 118 ms 95th, 142 ms 99th, 206 ms 99.9th.
+Node 5: 10000000 records sent, 325150.382052 records/sec (77.52 MB/sec), 70.54 ms avg latency, 418.00 ms max latency, 71 ms 50th, 122 ms 95th, 295 ms 99th, 395 ms 99.9th.
+Node 6: 10000000 records sent, 339431.791182 records/sec (80.93 MB/sec), 70.79 ms avg latency, 461.00 ms max latency, 64 ms 50th, 110 ms 95th, 131 ms 99th, 198 ms 99.9th.
+Node 7: 10000000 records sent, 284859.706595 records/sec (67.92 MB/sec), 69.19 ms avg latency, 396.00 ms max latency, 60 ms 50th, 105 ms 95th, 130 ms 99th, 227 ms 99.9th.
+Node 8: 10000000 records sent, 348407.776462 records/sec (83.07 MB/sec), 71.67 ms avg latency, 421.00 ms max latency, 68 ms 50th, 118 ms 95th, 306 ms 99th, 392 ms 99.9th.
+Node 9: 10000000 records sent, 286935.812459 records/sec (68.41 MB/sec), 74.72 ms avg latency, 395.00 ms max latency, 81 ms 50th, 134 ms 95th, 191 ms 99th, 300 ms 99.9th.
+Node 10: 10000000 records sent, 274280.698867 records/sec (65.39 MB/sec), 69.77 ms avg latency, 522.00 ms max latency, 67 ms 50th, 118 ms 95th, 279 ms 99th, 391 ms 99.9th.
+
+Total Throughput: 3220294.384 records/sec, 767.78 MB/sec, 71.49 ms avg latency, 445.9 ms max latency
+```
+
+### Initial Thoughts
+Increasing from 6 broker nodes to 9 broker nodes did not increase my total throughput for my 10 Producers running in parallel. Instead, lets try running 15 producers in parallel to see if we see further improvements through horizontal scaling
+
+### Example output from 15 Producers:
+```
+Node 1: 10000000 records sent, 230139.003958 records/sec (54.87 MB/sec), 2388.03 ms avg latency, 11502.00 ms max latency, 13 ms 50th, 192 ms 95th, 606 ms 99th, 810 ms 99.9th.
+Node 2: 10000000 records sent, 230776.331579 records/sec (55.02 MB/sec), 2158.57 ms avg latency, 10970.00 ms max latency, 13 ms 50th, 245 ms 95th, 497 ms 99th, 658 ms 99.9th.
+Node 3: 10000000 records sent, 251048.125926 records/sec (59.85 MB/sec), 1090.09 ms avg latency, 8554.00 ms max latency, 1922 ms 50th, 7103 ms 95th, 8124 ms 99th, 8439 ms 99.9th.
+Node 4: 10000000 records sent, 241995.982867 records/sec (57.70 MB/sec), 1034.57 ms avg latency, 9409.00 ms max latency, 13 ms 50th, 246 ms 95th, 573 ms 99th, 685 ms 99.9th.
+Node 5: 10000000 records sent, 322216.851941 records/sec (76.82 MB/sec), 87.41 ms avg latency, 1032.00 ms max latency, 14 ms 50th, 330 ms 95th, 455 ms 99th, 490 ms 99.9th.
+Node 6: 10000000 records sent, 323143.540361 records/sec (77.04 MB/sec), 86.17 ms avg latency, 1118.00 ms max latency, 14 ms 50th, 248 ms 95th, 466 ms 99th, 553 ms 99.9th.
+Node 7: 10000000 records sent, 238299.494805 records/sec (56.82 MB/sec), 69.08 ms avg latency, 1213.00 ms max latency, 20 ms 50th, 543 ms 95th, 840 ms 99th, 1149 ms 99.9th.
+Node 8: 10000000 records sent, 227531.285552 records/sec (54.25 MB/sec), 2438.05 ms avg latency, 14213.00 ms max latency, 13 ms 50th, 181 ms 95th, 591 ms 99th, 810 ms 99.9th.
+Node 9: 10000000 records sent, 197226.988541 records/sec (47.02 MB/sec), 663.84 ms avg latency, 7669.00 ms max latency, 970 ms 50th, 5665 ms 95th, 7074 ms 99th, 7596 ms 99.9th.
+Node 10: 10000000 records sent, 199433.608552 records/sec (47.55 MB/sec), 962.04 ms avg latency, 9687.00 ms max latency, 13 ms 50th, 185 ms 95th, 447 ms 99th, 515 ms 99.9th.
+Node 11: 10000000 records sent, 323373.431639 records/sec (77.10 MB/sec), 87.48 ms avg latency, 1165.00 ms max latency, 14 ms 50th, 226 ms 95th, 557 ms 99th, 644 ms 99.9th.
+Node 12: 10000000 records sent, 311847.070197 records/sec (74.35 MB/sec), 89.42 ms avg latency, 1085.00 ms max latency, 25 ms 50th, 641 ms 95th, 944 ms 99th, 1048 ms 99.9th.
+Node 13: 10000000 records sent, 328871.641398 records/sec (78.41 MB/sec), 85.25 ms avg latency, 1028.00 ms max latency, 13 ms 50th, 259 ms 95th, 491 ms 99th, 580 ms 99.9th.
+Node 14: 10000000 records sent, 246159.905475 records/sec (58.69 MB/sec), 1152.43 ms avg latency, 8921.00 ms max latency, 13 ms 50th, 198 ms 95th, 531 ms 99th, 615 ms 99.9th.
+Node 15: 10000000 records sent, 236468.112275 records/sec (56.38 MB/sec), 2053.82 ms avg latency, 11852.00 ms max latency, 13 ms 50th, 201 ms 95th, 419 ms 99th, 575 ms 99.9th.
+
+Total Throughput: 3908531.375 records/sec, 931.87 MB/sec, 963.08 ms avg latency, 6627.8 ms max latency
+```
+
+### Initial Thoughts
+Although increasing the Producer count to 15 increased my total throughput closer to 4M messages/sec, we also took a significant hit in terms of latency
+
+## Increase Topic Partitions
+As we increase the number of Kafka brokers in our cluster, we start to be able to tinker more with topic partitions. Partitions are a unit of parallelism in Kafka. 
+
+### A standard formula for Partitions:
+P = Throughput from producer to single partition
+C = Throughput from a single partition to a consumer
+T = Target throughput
+
+Required # of Partitions = Max (T/P, T/C)
+
+So for example if my target throughput (T) is 10 million messages, Required # of partitions would be 10M/330K which is 30 partitions
+
+### Create new topics/partitions
+
+Using the DC/OS CLI:
+```
+dcos confluent-kafka topic create performancetest2 --partitions 20 --replication 3
+dcos confluent-kafka topic create performancetest3 --partitions 30 --replication 3
+```
+
+### Run the Kafka Performance Test
+
+**20 partitions - 15 Producers**
+```
+Node 1: 10000000 records sent, 317007.449675 records/sec (75.58 MB/sec), 30.91 ms avg latency, 728.00 ms max latency, 10 ms 50th, 100 ms 95th, 169 ms 99th, 229 ms 99.9th.
+Node 2: 10000000 records sent, 237535.333381 records/sec (56.63 MB/sec), 26.70 ms avg latency, 662.00 ms max latency, 11 ms 50th, 149 ms 95th, 264 ms 99th, 503 ms 99.9th.
+Node 3: 10000000 records sent, 321843.519681 records/sec (76.73 MB/sec), 31.37 ms avg latency, 576.00 ms max latency, 10 ms 50th, 172 ms 95th, 378 ms 99th, 548 ms 99.9th.
+Node 4: 10000000 records sent, 243421.533069 records/sec (58.04 MB/sec), 27.46 ms avg latency, 466.00 ms max latency, 12 ms 50th, 97 ms 95th, 229 ms 99th, 362 ms 99.9th.
+Node 5: 10000000 records sent, 245978.255522 records/sec (58.65 MB/sec), 27.56 ms avg latency, 709.00 ms max latency, 12 ms 50th, 188 ms 95th, 320 ms 99th, 460 ms 99.9th.
+Node 6: 10000000 records sent, 244313.600938 records/sec (58.25 MB/sec), 31.45 ms avg latency, 718.00 ms max latency, 10 ms 50th, 96 ms 95th, 174 ms 99th, 421 ms 99.9th.
+Node 7: 10000000 records sent, 230435.984883 records/sec (54.94 MB/sec), 26.91 ms avg latency, 737.00 ms max latency, 11 ms 50th, 109 ms 95th, 235 ms 99th, 289 ms 99.9th.
+Node 8: 10000000 records sent, 219524.509912 records/sec (52.34 MB/sec), 23.62 ms avg latency, 701.00 ms max latency, 11 ms 50th, 65 ms 95th, 141 ms 99th, 253 ms 99.9th.
+Node 9: 10000000 records sent, 238982.888825 records/sec (56.98 MB/sec), 27.04 ms avg latency, 522.00 ms max latency, 13 ms 50th, 169 ms 95th, 345 ms 99th, 493 ms 99.9th.
+Node 10: 10000000 records sent, 229911.484079 records/sec (54.82 MB/sec), 24.58 ms avg latency, 479.00 ms max latency, 12 ms 50th, 95 ms 95th, 213 ms 99th, 282 ms 99.9th.
+Node 11: 10000000 records sent, 315826.043016 records/sec (75.30 MB/sec), 30.60 ms avg latency, 705.00 ms max latency, 11 ms 50th, 83 ms 95th, 145 ms 99th, 285 ms 99.9th.
+Node 12: 10000000 records sent, 314090.081035 records/sec (74.88 MB/sec), 30.82 ms avg latency, 607.00 ms max latency, 10 ms 50th, 84 ms 95th, 151 ms 99th, 219 ms 99.9th.
+Node 13: 10000000 records sent, 329902.348905 records/sec (78.65 MB/sec), 31.30 ms avg latency, 689.00 ms max latency, 10 ms 50th, 108 ms 95th, 236 ms 99th, 438 ms 99.9th.
+Node 14: 10000000 records sent, 309645.455953 records/sec (73.83 MB/sec), 28.62 ms avg latency, 591.00 ms max latency, 11 ms 50th, 109 ms 95th, 162 ms 99th, 214 ms 99.9th.
+Node 15: 10000000 records sent, 317007.449675 records/sec (75.58 MB/sec), 30.91 ms avg latency, 728.00 ms max latency, 10 ms 50th, 100 ms 95th, 169 ms 99th, 229 ms 99.9th.
+
+Total Throughput: 4115425.94 records/sec, 981.2 MB/sec, 28.66 ms avg latency, 634.53 ms avg max latency
+```
+
+**30 partitions - 15 Producers**
+```
+Node 1: 10000000 records sent, 243220.235924 records/sec (57.99 MB/sec), 19.67 ms avg latency, 337.00 ms max latency, 10 ms 50th, 61 ms 95th, 168 ms 99th, 283 ms 99.9th.
+Node 2: 10000000 records sent, 243617.228610 records/sec (58.08 MB/sec), 23.53 ms avg latency, 455.00 ms max latency, 11 ms 50th, 107 ms 95th, 238 ms 99th, 381 ms 99.9th.
+Node 3: 10000000 records sent, 308289.915837 records/sec (73.50 MB/sec), 20.48 ms avg latency, 427.00 ms max latency, 10 ms 50th, 84 ms 95th, 204 ms 99th, 368 ms 99.9th.
+Node 4: 10000000 records sent, 222786.614980 records/sec (53.12 MB/sec), 19.44 ms avg latency, 357.00 ms max latency, 10 ms 50th, 66 ms 95th, 138 ms 99th, 276 ms 99.9th.
+Node 5: 10000000 records sent, 230239.679506 records/sec (54.89 MB/sec), 20.55 ms avg latency, 390.00 ms max latency, 11 ms 50th, 97 ms 95th, 178 ms 99th, 283 ms 99.9th.
+Node 6: 10000000 records sent, 227826.760531 records/sec (54.32 MB/sec), 20.35 ms avg latency, 463.00 ms max latency, 11 ms 50th, 85 ms 95th, 177 ms 99th, 252 ms 99.9th.
+Node 7: 10000000 records sent, 220774.919969 records/sec (52.64 MB/sec), 18.53 ms avg latency, 340.00 ms max latency, 11 ms 50th, 64 ms 95th, 152 ms 99th, 235 ms 99.9th.
+Node 8: 10000000 records sent, 234868.591023 records/sec (56.00 MB/sec), 22.15 ms avg latency, 429.00 ms max latency, 11 ms 50th, 93 ms 95th, 210 ms 99th, 286 ms 99.9th.
+Node 9: 10000000 records sent, 226551.880381 records/sec (54.01 MB/sec), 19.47 ms avg latency, 312.00 ms max latency, 11 ms 50th, 80 ms 95th, 168 ms 99th, 266 ms 99.9th.
+Node 10: 10000000 records sent, 218307.245617 records/sec (52.05 MB/sec), 19.69 ms avg latency, 388.00 ms max latency, 11 ms 50th, 69 ms 95th, 158 ms 99th, 265 ms 99.9th.
+Node 11: 10000000 records sent, 318451.054073 records/sec (75.92 MB/sec), 20.24 ms avg latency, 383.00 ms max latency, 10 ms 50th, 70 ms 95th, 160 ms 99th, 240 ms 99.9th. 
+Node 12: 10000000 records sent, 300282.265329 records/sec (71.59 MB/sec), 20.77 ms avg latency, 382.00 ms max latency, 10 ms 50th, 86 ms 95th, 185 ms 99th, 245 ms 99.9th.
+Node 13: 10000000 records sent, 314445.632350 records/sec (74.97 MB/sec), 19.96 ms avg latency, 416.00 ms max latency, 10 ms 50th, 85 ms 95th, 196 ms 99th, 343 ms 99.9th.
+Node 14: 10000000 records sent, 317389.786397 records/sec (75.67 MB/sec), 21.14 ms avg latency, 317.00 ms max latency, 10 ms 50th, 82 ms 95th, 166 ms 99th, 252 ms 99.9th.
+Node 15: 10000000 records sent, 318532.203606 records/sec (75.94 MB/sec), 20.81 ms avg latency, 335.00 ms max latency, 10 ms 50th, 94 ms 95th, 186 ms 99th, 263 ms 99.9th.
+
+Total Throughput: 3945584.014, 940.69 MB/sec, 20.45 ms avg latency, 382 ms avg max latency
+```
+
+#### Initial Thoughts
+Increasing the partition count in our topic, we observe a similar/marginal increase in total throughput for our 15 Producers but we can clearly see that increasing the partition count brings us back to a latency that is actually acceptable by modern applications
+
 ### Conclusions
-By horizontally scaling our Kafka cluster as well as increasing the parallelism of our Producers, we can use the increased throughput parameters to achieve an aggregate 3.23 million messages per second on our single performancetest topic!
+By horizontally scaling our Kafka cluster as well as increasing the parallelism of our Producers, we can use the increased throughput parameters to achieve an aggregate 4.1 million messages per second on our single performancetest topic. This was all tested on a 9 broker node Kafka cluster running on DC/OS on AWS m3.xlarge instances, which is pretty impressive. AWS instances optimized for storage and networking may result in even better performance since Kafka is so heavily dependent on I/O and fast network performance over anything else.
 
 # Other Design Goals
 
