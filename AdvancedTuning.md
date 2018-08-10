@@ -28,7 +28,7 @@ For our Advanced Guide we will later scale to a larger Kafka cluster size to obs
 - 25 GB Disk
 - 512 MB JVM Heap Size
 
-See `options.json` configuration below, as you can see there are many parameters in Kafka that we can tune:
+Save the `options.json` configuration below, as you can see there are many parameters in Kafka that we can tune:
 ```
 {
   "brokers": {
@@ -216,7 +216,7 @@ deploy (serial strategy) (COMPLETE)
    └─ kafka-2:[broker] (COMPLETE)
 ```
 
-### Step 2: Add a test topic from the DC/OS cli
+## Step 2: Add a test topic from the DC/OS cli
 ```
 dcos confluent-kafka topic create performancetest --partitions 10 --replication 3
 ```
@@ -364,7 +364,7 @@ fetch.MB.sec - 332.6461
 fetch.nMsg.sec - 1395219.0494
 ```
 
-## Understand baseline performance
+## Step 7: Understand baseline performance
 
 My variable parameter was `record-size` in bytes which I averaged across 5 runs:
 

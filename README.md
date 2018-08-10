@@ -41,7 +41,7 @@ deploy (serial strategy) (COMPLETE)
    └─ kafka-2:[broker] (COMPLETE)
 ```
 
-### Step 2: Add a test topic from the DC/OS cli
+## Step 2: Add a test topic from the DC/OS cli
 ```
 dcos confluent-kafka topic create performancetest --partitions 10 --replication 3
 ```
