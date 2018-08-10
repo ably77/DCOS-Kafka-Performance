@@ -557,7 +557,7 @@ Using the DC/OS CLI:
 ```
 dcos confluent-kafka topic create performancetest2 --partitions 20 --replication 3
 dcos confluent-kafka topic create performancetest3 --partitions 30 --replication 3
-
+```
 
 ## Running Multiple Producers in Parallel
 In order to attack this throughput problem with multiple producers in parallel, we will run the performance test as a service in DC/OS and scale it  to run multiple producers. Note that running multiple producers from the same node is less effective in this situation because our bottleneck may start to come from other places, such as the NIC. Keeping the producers on seperate nodes is more ideal for our current testing case as we can then remove the Producer as the throughput bottleneck.
