@@ -713,6 +713,11 @@ Total Throughput: 9437817.81 records/sec, 2250.16 MB/sec, 72.09 ms avg latency, 
 
 As you can see from above, our 6 broker node Kafka cluster is holding up a throughput of > 9M messages/sec. It is important to note though that there was an increase in latency here. We will continue to scale the cluster to 9 broker nodes to see if this relieves anything.
 
+Remove Service:
+```
+dcos marathon app remove 15producer-topic-performancetest3
+```
+
 ### Kafka Cluster Parameters
 - 9x Brokers
 - 3 CPU
