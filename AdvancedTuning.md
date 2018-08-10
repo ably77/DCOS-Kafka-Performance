@@ -544,6 +544,7 @@ Follow the SSH instructions above and run the Confluent Kafka Docker image on ev
 
 ### Example output from 10 Producers
 In my case, I have a 10 node DC/OS cluster, running our 6x broker Kafka configuration. The example aggregate throughput is below. Since we are running all of these in parallel, I can add the avg throughput values together to determine total throughput:
+
 ```
 Node 1: 10000000 records sent, 349027.957139 records/sec (83.21 MB/sec), 75.34 ms avg latency, 402.00 ms max latency, 69 ms 50th, 152 ms 95th, 315 ms 99th, 370 ms 99.9th.
 Node 2: 10000000 records sent, 357066.342927 records/sec (85.13 MB/sec), 76.01 ms avg latency, 362.00 ms max latency, 76 ms 50th, 133 ms 95th, 186 ms 99th, 232 ms 99.9th.
@@ -557,6 +558,7 @@ Node 9: 10000000 records sent, 292963.028066 records/sec (69.85 MB/sec), 73.41 m
 Node 10: 10000000 records sent, 279033.428205 records/sec (66.53 MB/sec), 72.33 ms avg latency, 387.00 ms max latency, 72 ms 50th, 123 ms 95th, 166 ms 99th, 238 ms 99.9th.
 
 Total Throughput: 3233090.43 records/sec, 770.83 MB/sec, 74.01 ms avg latency, 391.3 ms max latency
+```
 
 ### Kafka Cluster Parameters
 - 9x Brokers
