@@ -538,9 +538,87 @@ Output:
 As we can see from above, our throughput for a single producer hasnt increased much, however in order to gain the benefits of horizontal scaling we will also throw multiple producers at the same topic to see how much total throughput we can get out of the Kafka deployment.
 
 ## Running Multiple Producers in Parallel
-In order to attack this throughput problem with multiple producers in parallel, we will SSH into multiple nodes in the cluster to run multiple producers. Note that running multiple producers from the same node is less effective in this situation because our bottleneck may start to come from other places, such as the NIC. Keeping the producers on seperate nodes is more ideal for our current testing case.
+In order to attack this throughput problem with multiple producers in parallel, we will run the performance test as a service in DC/OS and scale it  to run multiple producers. Note that running multiple producers from the same node is less effective in this situation because our bottleneck may start to come from other places, such as the NIC. Keeping the producers on seperate nodes is more ideal for our current testing case as we can then remove the Producer as the throughput bottleneck.
 
-Follow the SSH instructions above and run the Confluent Kafka Docker image on every single agent in your DC/OS cluster. We can then use something like tmux in order to mirror multiple producers in parallel all hitting the same performancetest topic that we have been testing on.
+Here is the example application definition for our performance test service that we will call `confluent-producer.json`
+```
+{
+  "id": "/confluent-producer",
+  "backoffFactor": 1.15,
+  "backoffSeconds": 1,
+  "cmd": "kafka-producer-perf-test --topic performancetest --num-records 10000000 --record-size 250 --throughput 1000000 --producer-props acks=1 buffer.memory=67108864 compression.type=lz4 batch.size=100000 linger.ms=10 retries=0 bootstrap.servers=kafka-0-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-1-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-2-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025 && sleep 60",
+  "constraints": [
+    [
+      "hostname",
+      "UNIQUE"
+    ]
+  ],
+  "container": {
+    "type": "MESOS",
+    "volumes": [],
+    "docker": {
+      "image": "confluentinc/cp-kafka",
+      "forcePullImage": false,
+      "parameters": []
+    }
+  },
+  "cpus": 4,
+  "disk": 0,
+  "instances": 25,
+  "maxLaunchDelaySeconds": 3600,
+  "mem": 13000,
+  "gpus": 0,
+  "networks": [
+    {
+      "mode": "host"
+    }
+  ],
+  "portDefinitions": [],
+  "requirePorts": false,
+  "upgradeStrategy": {
+    "maximumOverCapacity": 1,
+    "minimumHealthCapacity": 0
+  },
+  "killSelection": "YOUNGEST_FIRST",
+  "unreachableStrategy": {
+    "inactiveAfterSeconds": 0,
+    "expungeAfterSeconds": 0
+  },
+  "healthChecks": [],
+  "fetch": []
+}
+```
+
+Description of Producer Service:
+- 3x Instances to start
+- 4 CPU
+- 13GB MEM
+- Constraint: HOSTNAME / UNIQUE
+- Sleep 120 seconds and restart
+
+Launch the marathon service:
+```
+dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/confluent-producer.json
+```
+
+Navigate to the UI --> Services --> confluent-producer --> logs --> Output (stdout) to view performance test results:
+```
+(AT BEGINNING OF FILE)
+Marked '/' as rslave
+Prepared mount '{"flags":20480,"source":"\/var\/lib\/mesos\/slave\/slaves\/be46bdec-18e3-4a9d-b882-1eb124d2221a-S30\/frameworks\/be46bdec-18e3-4a9d-b882-1eb124d2221a-0001\/executors\/confluent-producer.4a51f576-9cbc-11e8-9d2a-0e2dc78649df\/runs\/ece3311d-87c2-40d6-a3e3-1f90d4f57c46","target":"\/var\/lib\/mesos\/slave\/provisioner\/containers\/ece3311d-87c2-40d6-a3e3-1f90d4f57c46\/backends\/overlay\/rootfses\/076582c2-9497-421d-998e-6f07b93559c3\/mnt\/mesos\/sandbox"}'
+Prepared mount '{"flags":14,"source":"proc","target":"\/proc","type":"proc"}'
+Executing pre-exec command '{"arguments":["mount","-n","-t","ramfs","ramfs","\/var\/lib\/mesos\/slave\/slaves\/be46bdec-18e3-4a9d-b882-1eb124d2221a-S30\/frameworks\/be46bdec-18e3-4a9d-b882-1eb124d2221a-0001\/executors\/confluent-producer.4a51f576-9cbc-11e8-9d2a-0e2dc78649df\/runs\/ece3311d-87c2-40d6-a3e3-1f90d4f57c46\/.secret-0e31e8a4-9ddf-42c4-ba99-dadc819ad0a3"],"shell":false,"value":"mount"}'
+Changing root to /var/lib/mesos/slave/provisioner/containers/ece3311d-87c2-40d6-a3e3-1f90d4f57c46/backends/overlay/rootfses/076582c2-9497-421d-998e-6f07b93559c3
+2467414 records sent, 493482.8 records/sec (117.66 MB/sec), 9.4 ms avg latency, 271.0 max latency.
+3531271 records sent, 705689.6 records/sec (168.25 MB/sec), 7.4 ms avg latency, 47.0 max latency.
+3825728 records sent, 764534.0 records/sec (182.28 MB/sec), 7.3 ms avg latency, 60.0 max latency.
+10000000 records sent, 655694.708544 records/sec (156.33 MB/sec), 7.84 ms avg latency, 271.00 ms max latency, 7 ms 50th, 13 ms 95th, 25 ms 99th, 46 ms 99.9th.
+```
+
+### Example output from 3 Producers
+Since I have scaled up to 10 nodes in my DC/OS cluster but Kafka is only consuming 7 nodes, I have 3 isolated nodes available for my Producers to utilize for this test.
+```
+```
 
 ### Example output from 10 Producers
 In my case, I have a 10 node DC/OS cluster, running our 6x broker Kafka configuration. The example aggregate throughput is below. Since we are running all of these in parallel, I can add the avg throughput values together to determine total throughput:
@@ -763,3 +841,50 @@ For optimizing availability of Brokers, Confluent recommends:
 #### Consumers
 For optimizing availability of Consumers, Confluent recommends:
 - session.timeout.ms - as low as feasible (default 10000)
+
+
+
+###### WIP
+
+### DC/OS Cluster Specs:
+- 41 Nodes - AWS m3.xlarge (4 CPU, 15GB MEM, 60GB EBS DISK)
+	- 16 - Kafka
+	- 25 - Producer Instances
+
+### Kafka Cluster Parameters
+- 15x Brokers
+- 3 CPU
+- 12GB MEM
+- 25 GB Disk
+- 512 MB JVM Heap Size
+
+25 Producers Output:
+```
+10000000 records sent, 676910.580112 records/sec (161.39 MB/sec), 11.31 ms avg latency, 289.00 ms max latency, 8 ms 50th, 36 ms 95th, 89 ms 99th, 146 ms 99.9th.
+10000000 records sent, 687474.219717 records/sec (163.91 MB/sec), 11.42 ms avg latency, 297.00 ms max latency, 9 ms 50th, 29 ms 95th, 114 ms 99th, 149 ms 99.9th.
+10000000 records sent, 650634.624116 records/sec (155.35 MB/sec), 10.93 ms avg latency, 302.00 ms max latency, 8 ms 50th, 26 ms 95th, 102 ms 99th, 160 ms 99.9th.
+10000000 records sent, 648634.624116 records/sec (154.65 MB/sec), 10.93 ms avg latency, 302.00 ms max latency, 8 ms 50th, 26 ms 95th, 102 ms 99th, 160 ms 99.9th.
+10000000 records sent, 676910.580112 records/sec (161.39 MB/sec), 11.31 ms avg latency, 289.00 ms max latency, 8 ms 50th, 36 ms 95th, 89 ms 99th, 146 ms 99.9th.
+10000000 records sent, 691276.095673 records/sec (164.81 MB/sec), 11.02 ms avg latency, 277.00 ms max latency, 8 ms 50th, 33 ms 95th, 83 ms 99th, 116 ms 99.9th.
+10000000 records sent, 630238.860528 records/sec (150.26 MB/sec), 10.85 ms avg latency, 271.00 ms max latency, 8 ms 50th, 27 ms 95th, 69 ms 99th, 123 ms 99.9th.
+10000000 records sent, 691515.109605 records/sec (164.87 MB/sec), 11.28 ms avg latency, 303.00 ms max latency, 8 ms 50th, 24 ms 95th, 71 ms 99th, 103 ms 99.9th.
+10000000 records sent, 654793.085385 records/sec (156.11 MB/sec), 11.42 ms avg latency, 275.00 ms max latency, 9 ms 50th, 29 ms 95th, 61 ms 99th, 101 ms 99.9th.
+10000000 records sent, 638895.987733 records/sec (152.32 MB/sec), 11.57 ms avg latency, 325.00 ms max latency, 9 ms 50th, 30 ms 95th, 78 ms 99th, 189 ms 99.9th.
+10000000 records sent, 669882.100750 records/sec (159.71 MB/sec), 11.00 ms avg latency, 295.00 ms max latency, 8 ms 50th, 28 ms 95th, 83 ms 99th, 125 ms 99.9th.
+10000000 records sent, 672540.184276 records/sec (160.35 MB/sec), 11.36 ms avg latency, 270.00 ms max latency, 8 ms 50th, 38 ms 95th, 103 ms 99th, 134 ms 99.9th.
+10000000 records sent, 623208.276206 records/sec (148.58 MB/sec), 11.10 ms avg latency, 298.00 ms max latency, 8 ms 50th, 27 ms 95th, 69 ms 99th, 101 ms 99.9th.
+10000000 records sent, 656081.879019 records/sec (156.42 MB/sec), 11.17 ms avg latency, 278.00 ms max latency, 8 ms 50th, 27 ms 95th, 73 ms 99th, 179 ms 99.9th.
+10000000 records sent, 690798.563139 records/sec (164.70 MB/sec), 11.47 ms avg latency, 283.00 ms max latency, 8 ms 50th, 28 ms 95th, 77 ms 99th, 136 ms 99.9th.
+10000000 records sent, 664187.035069 records/sec (158.35 MB/sec), 10.88 ms avg latency, 291.00 ms max latency, 8 ms 50th, 29 ms 95th, 101 ms 99th, 209 ms 99.9th.
+10000000 records sent, 679163.270850 records/sec (161.93 MB/sec), 11.18 ms avg latency, 285.00 ms max latency, 8 ms 50th, 26 ms 95th, 100 ms 99th, 151 ms 99.9th.
+10000000 records sent, 622665.006227 records/sec (148.45 MB/sec), 11.19 ms avg latency, 294.00 ms max latency, 8 ms 50th, 21 ms 95th, 52 ms 99th, 146 ms 99.9th.
+10000000 records sent, 616636.862552 records/sec (147.02 MB/sec), 10.78 ms avg latency, 290.00 ms max latency, 8 ms 50th, 33 ms 95th, 81 ms 99th, 114 ms 99.9th.
+10000000 records sent, 656987.057355 records/sec (156.64 MB/sec), 11.35 ms avg latency, 292.00 ms max latency, 8 ms 50th, 32 ms 95th, 88 ms 99th, 182 ms 99.9th.
+10000000 records sent, 652230.628750 records/sec (155.50 MB/sec), 11.15 ms avg latency, 285.00 ms max latency, 8 ms 50th, 33 ms 95th, 86 ms 99th, 157 ms 99.9th.
+10000000 records sent, 653893.938403 records/sec (155.90 MB/sec), 11.07 ms avg latency, 286.00 ms max latency, 8 ms 50th, 23 ms 95th, 63 ms 99th, 130 ms 99.9th.
+10000000 records sent, 688373.373718 records/sec (164.12 MB/sec), 11.34 ms avg latency, 280.00 ms max latency, 8 ms 50th, 27 ms 95th, 78 ms 99th, 151 ms 99.9th.
+10000000 records sent, 636051.392953 records/sec (151.65 MB/sec), 10.88 ms avg latency, 282.00 ms max latency, 8 ms 50th, 31 ms 95th, 83 ms 99th, 190 ms 99.9th.
+10000000 records sent, 499300.978630 records/sec (119.04 MB/sec), 10.20 ms avg latency, 316.00 ms max latency, 8 ms 50th, 23 ms 95th, 61 ms 99th, 164 ms 99.9th.
+
+Total Throughput: 15193931.94 records/sec, 3983.42  MB/sec, 11.13 ms avg latency, 290.2 ms avg max latency 
+```
