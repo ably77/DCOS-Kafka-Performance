@@ -47,7 +47,8 @@ Highest Single Producer Throughput:
 16254111.4 records/sec, 3875.3 MB/sec, 31.5768 ms avg latency, 437.24 ms avg max latency
 ```
 
-WIP:
+## WIP:
+
 A couple improvements can still be made to squeeze more overall performance from your Kafka deployment. Over time I will be adding more detailed information on how to:
 - Use a dedicated Kafka-Zookeeper in conjunction with the Kafka Framework
 - Isolate disk I/O using `MOUNT` disks
