@@ -748,7 +748,7 @@ dcos marathon app remove 5producer-topic-performancetest
 ### Conclusions
 As you can see from above, as we scale our Producers in parallel we can observe a linear relationship between adding more Producers and the Throughput increase. Now we will continue to scale our DC/OS cluster as well as our Kafka deployment to see if we can get even higher than 3.6 million records/sec with 5 brokers.
 
-## Optional: Scale your Cluster Again to test 10/15 Producers as well as 6/9 Kafka Broker configurations
+## Optional: Scale your Cluster Again to test 10/15 Producers as well as adding more Partitions
 
 ### DC/OS Cluster Prerequisites
 - 1 Master
@@ -912,11 +912,9 @@ dcos marathon app remove 15producer-topic-performancetest3
 ```
 
 ### Conclusions
-Increasing the topic partitions to both 20 and 30 resulted in a latency decrease back to an acceptable range. While both tests resulted in a similar avg latency, the 20 partition resulted in a higher max throughput but higher max latency, while the 30 partition test resulted in lower throughput but also lower avg max latency.
+Increasing the topic partitions to both 20 and 30 resulted in a latency decrease back to an acceptable range. While both tests resulted in a similar avg latency, the 20 partition resulted in a higher max throughput but higher max latency, while the 30 partition test resulted in lower throughput but also lower avg max latency. From here on out we will choose to use the 30 partition topic, as the throughput performance loss was not super significant compared to the max avg latency decrease.
 
-
-
-### Kafka Cluster Parameters
+### Scale your Kafka Cluster to 9 Brokers using CLI or GUI:
 - 9x Brokers
 - 3 CPU
 - 12GB MEM
@@ -944,9 +942,53 @@ deploy (serial strategy) (COMPLETE)
    └─ kafka-8:[broker] (COMPLETE)
 ```
 
+### Example Output from 25 Producers
+
+Deploy the Service:
+```
+dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/25producer-topic-performancetest3.json
+```
+
+Example Output from Logs:
+```
+10000000 records sent, 649814.802781 records/sec (154.93 MB/sec), 37.86 ms avg latency, 504.00 ms max latency, 15 ms 50th, 133 ms 95th, 361 ms 99th, 465 ms 99.9th.
+10000000 records sent, 644412.939812 records/sec (153.64 MB/sec), 35.81 ms avg latency, 456.00 ms max latency, 17 ms 50th, 198 ms 95th, 287 ms 99th, 440 ms 99.9th.
+10000000 records sent, 511901.714871 records/sec (122.05 MB/sec), 16.66 ms avg latency, 368.00 ms max latency, 9 ms 50th, 82 ms 95th, 223 ms 99th, 312 ms 99.9th.
+10000000 records sent, 672314.105150 records/sec (160.29 MB/sec), 37.60 ms avg latency, 413.00 ms max latency, 14 ms 50th, 187 ms 95th, 272 ms 99th, 314 ms 99.9th.
+10000000 records sent, 624141.805018 records/sec (148.81 MB/sec), 36.81 ms avg latency, 427.00 ms max latency, 17 ms 50th, 202 ms 95th, 314 ms 99th, 376 ms 99.9th.
+10000000 records sent, 624882.834469 records/sec (148.98 MB/sec), 36.13 ms avg latency, 462.00 ms max latency, 15 ms 50th, 117 ms 95th, 352 ms 99th, 437 ms 99.9th.
+10000000 records sent, 619693.871228 records/sec (147.75 MB/sec), 35.61 ms avg latency, 534.00 ms max latency, 23 ms 50th, 169 ms 95th, 322 ms 99th, 509 ms 99.9th.
+10000000 records sent, 633191.920471 records/sec (150.96 MB/sec), 36.47 ms avg latency, 459.00 ms max latency, 13 ms 50th, 130 ms 95th, 316 ms 99th, 439 ms 99.9th.
+10000000 records sent, 672675.904749 records/sec (160.38 MB/sec), 24.49 ms avg latency, 347.00 ms max latency, 10 ms 50th, 69 ms 95th, 90 ms 99th, 178 ms 99.9th.
+10000000 records sent, 652954.619654 records/sec (155.68 MB/sec), 37.56 ms avg latency, 501.00 ms max latency, 13 ms 50th, 141 ms 95th, 319 ms 99th, 459 ms 99.9th.
+10000000 records sent, 641272.284212 records/sec (152.89 MB/sec), 36.62 ms avg latency, 415.00 ms max latency, 13 ms 50th, 90 ms 95th, 249 ms 99th, 356 ms 99.9th.
+10000000 records sent, 671817.265704 records/sec (160.17 MB/sec), 36.69 ms avg latency, 433.00 ms max latency, 13 ms 50th, 96 ms 95th, 240 ms 99th, 408 ms 99.9th.
+10000000 records sent, 688183.882733 records/sec (164.08 MB/sec), 36.39 ms avg latency, 464.00 ms max latency, 13 ms 50th, 183 ms 95th, 281 ms 99th, 327 ms 99.9th.
+10000000 records sent, 686294.694942 records/sec (163.63 MB/sec), 20.89 ms avg latency, 400.00 ms max latency, 10 ms 50th, 59 ms 95th, 83 ms 99th, 109 ms 99.9th.
+10000000 records sent, 687805.213564 records/sec (163.99 MB/sec), 28.17 ms avg latency, 497.00 ms max latency, 14 ms 50th, 126 ms 95th, 275 ms 99th, 452 ms 99.9th.
+10000000 records sent, 651338.500619 records/sec (155.29 MB/sec), 37.53 ms avg latency, 488.00 ms max latency, 13 ms 50th, 95 ms 95th, 254 ms 99th, 415 ms 99.9th.
+10000000 records sent, 677002.234107 records/sec (161.41 MB/sec), 36.14 ms avg latency, 438.00 ms max latency, 12 ms 50th, 88 ms 95th, 210 ms 99th, 374 ms 99.9th.
+10000000 records sent, 698080.279232 records/sec (166.44 MB/sec), 24.29 ms avg latency, 344.00 ms max latency, 10 ms 50th, 67 ms 95th, 87 ms 99th, 130 ms 99.9th.
+10000000 records sent, 621929.224454 records/sec (148.28 MB/sec), 21.78 ms avg latency, 326.00 ms max latency, 10 ms 50th, 75 ms 95th, 99 ms 99th, 174 ms 99.9th.
+10000000 records sent, 679393.980569 records/sec (161.98 MB/sec), 37.22 ms avg latency, 448.00 ms max latency, 13 ms 50th, 93 ms 95th, 237 ms 99th, 391 ms 99.9th.
+10000000 records sent, 649139.889646 records/sec (154.77 MB/sec), 22.80 ms avg latency, 476.00 ms max latency, 10 ms 50th, 64 ms 95th, 88 ms 99th, 129 ms 99.9th.
+10000000 records sent, 677048.070413 records/sec (161.42 MB/sec), 26.08 ms avg latency, 398.00 ms max latency, 11 ms 50th, 72 ms 95th, 110 ms 99th, 330 ms 99.9th.
+10000000 records sent, 620347.394541 records/sec (147.90 MB/sec), 36.48 ms avg latency, 472.00 ms max latency, 13 ms 50th, 107 ms 95th, 237 ms 99th, 357 ms 99.9th.
+10000000 records sent, 620231.966756 records/sec (147.87 MB/sec), 26.45 ms avg latency, 415.00 ms max latency, 13 ms 50th, 113 ms 95th, 270 ms 99th, 375 ms 99.9th.
+10000000 records sent, 678241.996744 records/sec (161.71 MB/sec), 26.89 ms avg latency, 446.00 ms max latency, 11 ms 50th, 78 ms 95th, 205 ms 99th, 420 ms 99.9th.
+
+Total Throughput: 16254111.4 records/sec, 3875.3 MB/sec, 31.5768 ms avg latency, 437.24 ms avg max latency
+```
+
+Remove the Service:
+```
+dcos marathon app remove 25producer-topic-performancetest3
+```
 
 ### Conclusions
-By horizontally scaling our Kafka cluster as well as increasing the parallelism of our Producers, we can use the increased throughput parameters to achieve an aggregate >15 million messages per second on our single performancetest topic. This was all tested on a 9 broker node Kafka cluster running on DC/OS on AWS m3.xlarge instances, which is pretty good. AWS instances optimized for storage and networking may result in even better performance since Kafka is so heavily dependent on I/O and fast network performance over anything else.
+By horizontally scaling our Kafka cluster as well as increasing the parallelism of our Producers, we can use the increased throughput parameters to achieve an aggregate >16.2 million messages per second on our single 30 partition performancetest3 topic. This was all tested on a 9 broker node Kafka cluster running on DC/OS on AWS m3.xlarge instances, which is pretty good. AWS instances optimized for storage and networking may result in even better performance since Kafka is so heavily dependent on I/O and fast network performance over anything else.
+
+As we continue to scale, it is important to continue testing multiple parameters to achieve the best balance between throughput, latency, durability, and availability. Depending on your design goals, you can use the information below to help tweak your Kafka performance
 
 # Other Design Goals
 
@@ -1000,50 +1042,3 @@ For optimizing availability of Brokers, Confluent recommends:
 #### Consumers
 For optimizing availability of Consumers, Confluent recommends:
 - session.timeout.ms - as low as feasible (default 10000)
-
-
-
-###### WIP
-
-### DC/OS Cluster Specs:
-- 41 Nodes - AWS m3.xlarge (4 CPU, 15GB MEM, 60GB EBS DISK)
-	- 16 - Kafka
-	- 25 - Producer Instances
-
-### Kafka Cluster Parameters
-- 15x Brokers
-- 3 CPU
-- 12GB MEM
-- 25 GB Disk
-- 512 MB JVM Heap Size
-
-25 Producers Output:
-```
-10000000 records sent, 676910.580112 records/sec (161.39 MB/sec), 11.31 ms avg latency, 289.00 ms max latency, 8 ms 50th, 36 ms 95th, 89 ms 99th, 146 ms 99.9th.
-10000000 records sent, 687474.219717 records/sec (163.91 MB/sec), 11.42 ms avg latency, 297.00 ms max latency, 9 ms 50th, 29 ms 95th, 114 ms 99th, 149 ms 99.9th.
-10000000 records sent, 650634.624116 records/sec (155.35 MB/sec), 10.93 ms avg latency, 302.00 ms max latency, 8 ms 50th, 26 ms 95th, 102 ms 99th, 160 ms 99.9th.
-10000000 records sent, 648634.624116 records/sec (154.65 MB/sec), 10.93 ms avg latency, 302.00 ms max latency, 8 ms 50th, 26 ms 95th, 102 ms 99th, 160 ms 99.9th.
-10000000 records sent, 676910.580112 records/sec (161.39 MB/sec), 11.31 ms avg latency, 289.00 ms max latency, 8 ms 50th, 36 ms 95th, 89 ms 99th, 146 ms 99.9th.
-10000000 records sent, 691276.095673 records/sec (164.81 MB/sec), 11.02 ms avg latency, 277.00 ms max latency, 8 ms 50th, 33 ms 95th, 83 ms 99th, 116 ms 99.9th.
-10000000 records sent, 630238.860528 records/sec (150.26 MB/sec), 10.85 ms avg latency, 271.00 ms max latency, 8 ms 50th, 27 ms 95th, 69 ms 99th, 123 ms 99.9th.
-10000000 records sent, 691515.109605 records/sec (164.87 MB/sec), 11.28 ms avg latency, 303.00 ms max latency, 8 ms 50th, 24 ms 95th, 71 ms 99th, 103 ms 99.9th.
-10000000 records sent, 654793.085385 records/sec (156.11 MB/sec), 11.42 ms avg latency, 275.00 ms max latency, 9 ms 50th, 29 ms 95th, 61 ms 99th, 101 ms 99.9th.
-10000000 records sent, 638895.987733 records/sec (152.32 MB/sec), 11.57 ms avg latency, 325.00 ms max latency, 9 ms 50th, 30 ms 95th, 78 ms 99th, 189 ms 99.9th.
-10000000 records sent, 669882.100750 records/sec (159.71 MB/sec), 11.00 ms avg latency, 295.00 ms max latency, 8 ms 50th, 28 ms 95th, 83 ms 99th, 125 ms 99.9th.
-10000000 records sent, 672540.184276 records/sec (160.35 MB/sec), 11.36 ms avg latency, 270.00 ms max latency, 8 ms 50th, 38 ms 95th, 103 ms 99th, 134 ms 99.9th.
-10000000 records sent, 623208.276206 records/sec (148.58 MB/sec), 11.10 ms avg latency, 298.00 ms max latency, 8 ms 50th, 27 ms 95th, 69 ms 99th, 101 ms 99.9th.
-10000000 records sent, 656081.879019 records/sec (156.42 MB/sec), 11.17 ms avg latency, 278.00 ms max latency, 8 ms 50th, 27 ms 95th, 73 ms 99th, 179 ms 99.9th.
-10000000 records sent, 690798.563139 records/sec (164.70 MB/sec), 11.47 ms avg latency, 283.00 ms max latency, 8 ms 50th, 28 ms 95th, 77 ms 99th, 136 ms 99.9th.
-10000000 records sent, 664187.035069 records/sec (158.35 MB/sec), 10.88 ms avg latency, 291.00 ms max latency, 8 ms 50th, 29 ms 95th, 101 ms 99th, 209 ms 99.9th.
-10000000 records sent, 679163.270850 records/sec (161.93 MB/sec), 11.18 ms avg latency, 285.00 ms max latency, 8 ms 50th, 26 ms 95th, 100 ms 99th, 151 ms 99.9th.
-10000000 records sent, 622665.006227 records/sec (148.45 MB/sec), 11.19 ms avg latency, 294.00 ms max latency, 8 ms 50th, 21 ms 95th, 52 ms 99th, 146 ms 99.9th.
-10000000 records sent, 616636.862552 records/sec (147.02 MB/sec), 10.78 ms avg latency, 290.00 ms max latency, 8 ms 50th, 33 ms 95th, 81 ms 99th, 114 ms 99.9th.
-10000000 records sent, 656987.057355 records/sec (156.64 MB/sec), 11.35 ms avg latency, 292.00 ms max latency, 8 ms 50th, 32 ms 95th, 88 ms 99th, 182 ms 99.9th.
-10000000 records sent, 652230.628750 records/sec (155.50 MB/sec), 11.15 ms avg latency, 285.00 ms max latency, 8 ms 50th, 33 ms 95th, 86 ms 99th, 157 ms 99.9th.
-10000000 records sent, 653893.938403 records/sec (155.90 MB/sec), 11.07 ms avg latency, 286.00 ms max latency, 8 ms 50th, 23 ms 95th, 63 ms 99th, 130 ms 99.9th.
-10000000 records sent, 688373.373718 records/sec (164.12 MB/sec), 11.34 ms avg latency, 280.00 ms max latency, 8 ms 50th, 27 ms 95th, 78 ms 99th, 151 ms 99.9th.
-10000000 records sent, 636051.392953 records/sec (151.65 MB/sec), 10.88 ms avg latency, 282.00 ms max latency, 8 ms 50th, 31 ms 95th, 83 ms 99th, 190 ms 99.9th.
-10000000 records sent, 499300.978630 records/sec (119.04 MB/sec), 10.20 ms avg latency, 316.00 ms max latency, 8 ms 50th, 23 ms 95th, 61 ms 99th, 164 ms 99.9th.
-
-Total Throughput: 15193931.94 records/sec, 3983.42  MB/sec, 11.13 ms avg latency, 290.2 ms avg max latency 
-```
