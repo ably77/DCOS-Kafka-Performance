@@ -5,7 +5,7 @@ Lets take our prior example and expand on it. We're going to try to change up so
 For this guide, the specs of my cluster are as stated below:
 - DC/OS 1.11
 - 1 Master
-- 4 Private Agents
+- 5 Private Agents
 - DC/OS CLI Installed and authenticated to your Local Machine
 
 - AWS Instance Type: m3.xlarge - 4vCPU, 15GB RAM [See here for more recommended instance types by Confluent](https://www.confluent.io/blog/design-and-deployment-considerations-for-deploying-apache-kafka-on-aws/) 
@@ -28,7 +28,17 @@ For our Advanced Guide we will later scale to a larger Kafka cluster size to obs
 - 25 GB Disk
 - 512 MB JVM Heap Size
 
-Save the `options.json` configuration below, as you can see there are many parameters in Kafka that we can tune:
+If you have an existing Kafka deployment, you can use the command below to pull the configuration in order to edit:
+```
+dcos confluent-kafka describe > options.json
+```
+
+Make edits and submit Service update using:
+```
+dcos confluent-kafka update start --options=options.json
+```
+
+If you do not have Kafka deployed yet, you can use the `options.json` configuration and follow the instructions below, as you can see there are many parameters in Kafka that we can tune:
 ```
 {
   "brokers": {
@@ -246,81 +256,9 @@ $ dcos confluent-kafka endpoint broker | jq -r .dns[] | paste -sd, -
 kafka-0-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-1-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-2-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025
 ```
 
-Save this as we will need this output later for our Performance test.
+Notice that the broker DNS hostnames follow a common pattern `kafka-0-broker.<service-name>.autoip.dcos.thisdcos.directory:1025` provided by Mesos-DNS. This allows for DC/OS to manage service discovery when issues arise such as a broker failure. Using the DNS hostname we can abstract the need to know and reconfigure a static IP:port pairing.
 
-## Step 4: SSH onto any private agent
-
-If your organization already has SSH tooling set-up, feel free to use that. Otherwise, below is some instructions for SSH using the DC/OS CLI.
-
-With the DC/OS CLI:
-```
-ssh-add </PATH/TO/SSH_PRIVATE_KEY>
-```
-
-Find a Node:
-```
-dcos node
-```
-
-Output:
-```
-$ dcos node
-   HOSTNAME        IP                         ID                    TYPE                 REGION          ZONE
-  10.0.4.103   10.0.4.103  72244e5f-7a62-4058-b987-6b00244e9fce-S0  agent            aws/us-west-2  aws/us-west-2b
-  10.0.4.202   10.0.4.202  72244e5f-7a62-4058-b987-6b00244e9fce-S1  agent            aws/us-west-2  aws/us-west-2b
-  10.0.7.244   10.0.7.244  72244e5f-7a62-4058-b987-6b00244e9fce-S3  agent            aws/us-west-2  aws/us-west-2b
-  10.0.7.87    10.0.7.87   72244e5f-7a62-4058-b987-6b00244e9fce-S2  agent            aws/us-west-2  aws/us-west-2b
-master.mesos.  10.0.3.25     72244e5f-7a62-4058-b987-6b00244e9fce   master (leader)  aws/us-west-2  aws/us-west-2b
-```
-
-Select an agent and run the below command to SSH into a DC/OS Private Agent
-```
-dcos node ssh --master-proxy --mesos-id=<MESOS_ID> --user=<OS_USER>
-```
-
-Output should look similar to below:
-```
-$ dcos node ssh --master-proxy --mesos-id=306242b2-7a64-48b0-a140-5418c5a880e1-S1 --user=core
-Running `ssh -A -t  -l core 52.34.83.22 -- ssh -A -t  -l core 10.0.5.167 -- `
-The authenticity of host '10.0.5.167 (10.0.5.167)' can't be established.
-ECDSA key fingerprint is SHA256:kyIEvP4WI75QxzW1NyAf6gHgPF9fk/xRb5lH2jS5ETs.
-Are you sure you want to continue connecting (yes/no)? yes
-Warning: Permanently added '10.0.5.167' (ECDSA) to the list of known hosts.
-Last login: Fri Aug  3 16:40:21 UTC 2018 from 24.23.253.216 on pts/0
-Container Linux by CoreOS stable (1235.9.0)
-Update Strategy: No Reboots
-Failed Units: 1
-  update-engine.service
-core@ip-10-0-5-167 ~ $
-```
-
-## Step 5: Run the Confluent Kafka Docker Image
-
-The command below will run the Confluent Kafka docker image which contains multiple tools that we can use to produce, consume, and performance test our Kafka deployment
-```
-sudo docker run -it confluentinc/cp-kafka /bin/bash
-```
-
-### Test producing a message
-```
-echo “This is a test at $(date)” | kafka-console-producer --broker-list kafka-0-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-1-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-2-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025 --topic performancetest
-```
-
-### Test consuming a message
-```
-kafka-console-consumer --bootstrap-server kafka-0-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-1-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-2-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025 --topic performancetest --from-beginning
-```
-
-Output should look similar to below:
-```
-root@ba372c143b80:/# kafka-console-consumer --bootstrap-server kafka-0-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-1-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-2-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025 --topic performancetest --from-beginning
-“This is a test at Fri Aug 3 17:24:54 UTC 2018”
-```
-
-## Step 6: Run the Kafka Performance Test:
-```
-kafka-producer-perf-test --topic performancetest --num-records 5000000 --record-size 250 --throughput 1000000 --producer-props acks=1 buffer.memory=67108864 compression.type=none batch.size=8196 bootstrap.servers=kafka-0-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-1-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-2-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025
-```
+## Step 4: Run the Confluent Kafka performance test
 
 In this test we are using the following parameters:
 - Topic: performancetest
@@ -328,18 +266,83 @@ In this test we are using the following parameters:
 - Record Size: 250 bytes (representative of a typical log line)
 - Throughput: 1M (Set arbitrarily high to "max out")
 - Ack: 1 write
-	- This allows Kafka to acknowledge 1 write only and let the remaining 2 replicas write in the background
+        - This allows Kafka to acknowledge 1 write only and let the remaining 2 replicas write in the background
 - Buffer Memory: 67108864 (default)
 - Batch Size: 8196 (default)
 - Compression Type: none
-	- Can set to options: none, lz4, gzip, snappy
+        - Can set to options: none, lz4, gzip, snappy
 
-Output of the test should look similar to below:
+
+Here is the example application definition for our performance test service that we will call `confluent-producer.json`
 ```
-943363 records sent, 188672.6 records/sec (44.98 MB/sec), 5.8 ms avg latency, 278.0 max latency.
-1330321 records sent, 266064.2 records/sec (63.43 MB/sec), 3.4 ms avg latency, 45.0 max latency.
-1521870 records sent, 304374.0 records/sec (72.57 MB/sec), 3.1 ms avg latency, 31.0 max latency.
-5000000 records sent, 260783.393314 records/sec (62.18 MB/sec), 3.79 ms avg latency, 278.00 ms max latency, 3 ms 50th, 9 ms 95th, 21 ms 99th, 60 ms 99.9th.
+{
+  "id": "/confluent-producer",
+  "backoffFactor": 1.15,
+  "backoffSeconds": 1,
+  "cmd": "kafka-producer-perf-test --topic performancetest --num-records 10000000 --record-size 250 --throughput 1000000 --producer-props acks=1 buffer.memory=67108864 compression.type=lz4 batch.size=100000 linger.ms=10 retries=0 bootstrap.servers=kafka-0-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-1-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-2-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025 && sleep 60",
+  "constraints": [
+    [
+      "hostname",
+      "UNIQUE"
+    ]
+  ],
+  "container": {
+    "type": "MESOS",
+    "volumes": [],
+    "docker": {
+      "image": "confluentinc/cp-kafka",
+      "forcePullImage": false,
+      "parameters": []
+    }
+  },
+  "cpus": 4,
+  "disk": 0,
+  "instances": 1,
+  "maxLaunchDelaySeconds": 3600,
+  "mem": 13000,
+  "gpus": 0,
+  "networks": [
+    {
+      "mode": "host"
+    }
+  ],
+  "portDefinitions": [],
+  "requirePorts": false,
+  "upgradeStrategy": {
+    "maximumOverCapacity": 1,
+    "minimumHealthCapacity": 0
+  },
+  "killSelection": "YOUNGEST_FIRST",
+  "unreachableStrategy": {
+    "inactiveAfterSeconds": 0,
+    "expungeAfterSeconds": 0
+  },
+  "healthChecks": [],
+  "fetch": []
+}
+```
+
+Description of Producer Service:
+- 1x Instance to start
+- 4 CPU
+- 13GB MEM
+- Constraint: HOSTNAME / UNIQUE
+- Sleep 120 seconds and restart
+
+Note: Note that running multiple producers from the same node is less effective in this situation because our bottleneck may start to come from other places, such as the NIC. Keeping the producers on seperate nodes is more ideal for our current testing case as we can then remove the Producer as the throughput bottleneck. In our case when we built our cluster we deployed an extra agent node, which the Producer will utilize.
+
+Launch the marathon service:
+```
+dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/1producer-topic-performancetest.json
+```
+
+Navigate to the UI --> Services --> confluent-producer --> logs --> Output (stdout) to view performance test results:
+```
+```
+
+Remove the service:
+```
+dcos marathon app remove 1producer-topic-performancetest
 ```
 
 ### Kafka Consumer Performance Testing
