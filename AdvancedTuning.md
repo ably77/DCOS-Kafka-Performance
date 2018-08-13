@@ -841,6 +841,7 @@ Using the DC/OS CLI:
 ```
 dcos confluent-kafka topic create performancetest2 --partitions 20 --replication 3
 dcos confluent-kafka topic create performancetest3 --partitions 30 --replication 3
+```
 
 ### Re-test 15 Producers on more partitions to see if Latency decreases
 
