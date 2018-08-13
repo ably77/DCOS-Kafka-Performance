@@ -2,7 +2,7 @@
 Lets take our prior example and expand on it. We're going to try to change up some parameters and see what performance we get
 
 ## Prerequisites
-For this guide, the specs of my cluster are as stated below:
+To start, the specs of my cluster are as stated below:
 - DC/OS 1.11
 - 1 Master
 - 5 Private Agents
@@ -570,7 +570,7 @@ For the rest of the testing, we will utilize the Lower Range parameters, but it 
 Increasing fetch.min.bytes from 1 --> 1000000 resulted in a 43% increase in performance of our Consumer from 440K records/sec to 630K records/sec
 
 ## Horizontal Scale
-Now that we have reached a "peak" in our current configuration (3CPU, 12GB MEM, 25GB DISK) lets horizontally scale our cluster to see what performance benefits we can gain. Begin so by adding some nodes to your DC/OS cluster. We started this guide with 4, and for the rest of this guide we will test using 10 private agents
+Now that we have reached a "peak" in our current configuration (3CPU, 12GB MEM, 25GB DISK) lets horizontally scale our cluster to see what performance benefits we can gain. Begin so by adding some nodes to your DC/OS cluster. We started this guide with 5, and for the rest of this guide we will continue to scale test using up to 35 private agents
 
 ### DC/OS Cluster Prerequisites
 - 1 Master
@@ -757,6 +757,11 @@ As you can see from above, as we scale our Producers in parallel we can observe 
 - AWS Instance Type: m3.xlarge - 4vCPU, 15GB RAM See here for more recommended instance types by Confluent
 	- EBS Backed Storage - 60 GB
 
+### Test Setup:
+- 6x Kafka Brokers
+- 10/15 Producers
+Total: 22 Nodes (We will scale to 9x brokers later)
+
 ### Example output from 10 Producers
 
 Deploy the service:
@@ -920,6 +925,11 @@ Increasing the topic partitions to both 20 and 30 resulted in a latency decrease
 - 12GB MEM
 - 25 GB Disk
 - 512 MB JVM Heap Size
+
+### Test Setup:
+- 9x Kafka Brokers
+- 25 Producers
+Total: 35 Nodes
 
 To validate that the deployment is correct:
 ```
