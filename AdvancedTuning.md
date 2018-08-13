@@ -262,24 +262,27 @@ Notice that the broker DNS hostnames follow a common pattern `kafka-0-broker.<se
 
 In this test we are using the following parameters:
 - Topic: performancetest
-- Number of Records: 5M
+- Number of Records: 10M
 - Record Size: 250 bytes (representative of a typical log line)
 - Throughput: 1M (Set arbitrarily high to "max out")
 - Ack: 1 write
         - This allows Kafka to acknowledge 1 write only and let the remaining 2 replicas write in the background
 - Buffer Memory: 67108864 (default)
+	- Increasing buffer.memory allows Kafka to take longer before the producer starts blocking on additional sends, thereby increasing throughput. If you don't have a lot of partitions, you may not need to adjust this at all. However, if you have a lot of partitions you can tune this value taking into account the buffer size, linger time, and partition count.
 - Batch Size: 8196 (default)
+	- Producers can batch messages going to the same partition, tuning the producer batching to increase the batch size and time spent waiting for the batch to fill up with messages. Larger batch sizes result in fewer requests to the brokers, which reduces load on producers as well as broker CPU. Tradeoff is higher latency since messages are not sent as soon as they are ready to send
+- linger.ms: 0 (default)
+	- To give more time for batches to fill, you can configure the linger.ms parameter to have the producer wait longer before sending. This allows the producer to wait for the batch to reach the configured batch.size
 - Compression Type: none
         - Can set to options: none, lz4, gzip, snappy
 
-
-Here is the example application definition for our performance test service that we will call `confluent-producer.json`
+Here is the example application definition for our performance test service that we will call `1producer-topic-performancetest.json`
 ```
 {
-  "id": "/confluent-producer",
+  "id": "/1producer-topic-performancetest.json",
   "backoffFactor": 1.15,
   "backoffSeconds": 1,
-  "cmd": "kafka-producer-perf-test --topic performancetest --num-records 10000000 --record-size 250 --throughput 1000000 --producer-props acks=1 buffer.memory=67108864 compression.type=lz4 batch.size=100000 linger.ms=10 retries=0 bootstrap.servers=kafka-0-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-1-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-2-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025 && sleep 60",
+  "cmd": "kafka-producer-perf-test --topic performancetest --num-records 10000000 --record-size 250 --throughput 1000000 --producer-props acks=1 buffer.memory=67108864 compression.type=none batch.size=8196 linger.ms=0 retries=0 bootstrap.servers=kafka-0-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-1-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-2-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025 && sleep 60",
   "constraints": [
     [
       "hostname",
