@@ -394,7 +394,7 @@ Remove the Service:
 dcos marathon app remove 1consumer-topic-performancetest
 ```
 
-## Step 7: Understand baseline performance
+## Step 5: Understand baseline performance
 
 My variable parameter was `record-size` in bytes which I averaged across 5 runs:
 
