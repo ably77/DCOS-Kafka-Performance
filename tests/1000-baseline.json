@@ -1,5 +1,5 @@
 {
-  "id": "/250-baseline",
+  "id": "/1000-baseline",
   "backoffFactor": 1.15,
   "backoffSeconds": 1,
   "cmd": "kafka-producer-perf-test --topic performancetest --num-records 10000000 --record-size 1000 --throughput 1000000 --producer-props acks=1 buffer.memory=67108864 compression.type=none batch.size=8196 linger.ms=0 retries=0 bootstrap.servers=kafka-0-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-1-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-2-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025 && sleep 60",
