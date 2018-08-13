@@ -919,6 +919,8 @@ dcos marathon app remove 15producer-topic-performancetest3
 ### Conclusions
 Increasing the topic partitions to both 20 and 30 resulted in a latency decrease back to an acceptable range. While both tests resulted in a similar avg latency, the 20 partition resulted in a higher max throughput but higher max latency, while the 30 partition test resulted in lower throughput but also lower avg max latency. From here on out we will choose to use the 30 partition topic, as the throughput performance loss was not super significant compared to the max avg latency decrease.
 
+## Optional: Performance Testing using 9x Kafka Brokers and 25 Producers
+
 ### Scale your Kafka Cluster to 9 Brokers using CLI or GUI:
 - 9x Brokers
 - 3 CPU
