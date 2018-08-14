@@ -19,7 +19,7 @@ Note that the default Kafka package has these specifications for brokers:
 - 5000 MB Disk
 - 512 MB JVM Heap Size
 
-For our Advanced Guide we will later scale to a larger Kafka cluster size to observe performance improvements:
+For our Advanced Guide we will use a larger Kafka cluster size to observe performance improvements:
 
 ### Our Advanced Kafka Framework Parameters
 - 3x Brokers
@@ -28,7 +28,20 @@ For our Advanced Guide we will later scale to a larger Kafka cluster size to obs
 - 25 GB Disk
 - 512 MB JVM Heap Size
 
-If you have an existing Kafka deployment, you can use the command below to pull the configuration in order to edit:
+### If you have an Existing Kafka Deployment
+
+If you were following the Quickstart guide before this, we deployed the default Kafka framework with the specs listed above.
+
+The Kafka framework does not support changing the volume requirements after initial deployment in order to prevent accidental data loss from reallocation. This will require an uninstall, and reinstall of the Kafka deployment since we are testing a volume requirement 25GB Disk instead of the default 5GB.
+
+**Optional:** If you are already using the service name `confluent-kafka` and cannot uninstall the deployment, you can follow this guide with a second Kafka cluster if you have the resources available. Otherwise, if you want to just continue to use the default 5GB storage volume requirement you can just scale using the commands below as well.
+
+To Uninstall Kafka:
+```
+dcos package uninstall confluent-kafka --yes
+```
+
+To Update Kafka, grab the configuration `options.json`:
 ```
 dcos confluent-kafka describe > options.json
 ```
@@ -38,7 +51,17 @@ Make edits and submit Service update using:
 dcos confluent-kafka update start --options=options.json
 ```
 
-If you do not have Kafka deployed yet, you can use the `options.json` configuration and follow the instructions below, as you can see there are many parameters in Kafka that we can tune:
+Update fields below:
+```
+"count": 3,
+"cpus": 3,
+    },
+    "mem": 12000,
+```
+
+**Note:** Cannot change the storage requirements for updates, unless it is a fresh cluster install.
+
+If you do not have Kafka deployed yet, you can save the `options.json` configuration below and follow the instructions below, as you can see there are many parameters in Kafka that we can tune:
 ```
 {
   "brokers": {
