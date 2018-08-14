@@ -55,3 +55,4 @@ A couple improvements can still be made to squeeze more overall performance from
 - Maxing out I/O of the attached storage
 - Increase JVM heap size
 - Testing more storage/networking optimized instances other than m3.xlarge (i.e. r3, h1, i3, and d2 instances in AWS)
+- Balancing high throughput in exchange for a balanced profile of characteristics (durability, latency, availability)
