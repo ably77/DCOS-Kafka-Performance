@@ -394,8 +394,9 @@ In this test we are using the following parameters:
 - Number of Messages to Consume: 1.5M
 - Threads: 1
 
+Deploy the Service:
 ```
-dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/1consumer-topic-performancetest.json
+dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/1consumer-topic-performancetest.json
 ```
 
 Navigate to the DC/OS UI --> Services --> 1consumer-topic-performancetest --> logs --> Output (stdout) to view performance test results. Example Output (Edited for readability):
