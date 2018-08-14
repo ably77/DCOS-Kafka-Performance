@@ -486,6 +486,11 @@ Example output over 5 runs:
 Average: 91198.41 records/sec, 86.97 ms avg latency, 14644 ms avg max latency
 ```
 
+Remove the Service:
+```
+dcos marathon app remove 1000-baseline
+```
+
 ### Initial Thoughts:
 With a single isolated producer, you can see that our cluster can handle high throughput, but latency performance is clearly an issue. We will modify the tests to try and find an ideal high throughput and latency balance.
 
