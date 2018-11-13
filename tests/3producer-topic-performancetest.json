@@ -18,7 +18,7 @@
       "parameters": []
     }
   },
-  "cpus": 2,
+  "cpus": 4,
   "disk": 0,
   "instances": 3,
   "maxLaunchDelaySeconds": 3600,
