@@ -322,7 +322,7 @@ Here is the example application definition for our performance test service that
       "parameters": []
     }
   },
-  "cpus": 4,
+  "cpus": 2,
   "disk": 0,
   "instances": 1,
   "maxLaunchDelaySeconds": 3600,
