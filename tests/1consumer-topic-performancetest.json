@@ -2,7 +2,7 @@
   "id": "/1consumer-topic-performancetest",
   "backoffFactor": 1.15,
   "backoffSeconds": 1,
-  "cmd": "kafka-consumer-perf-test --topic performancetest --messages 15000000 --threads 1 --broker-list=roker.confluent-kafka.l4lb.thisdcos.directory:9092 && sleep 60",
+  "cmd": "kafka-consumer-perf-test --topic performancetest --messages 15000000 --threads 1 --broker-list=broker.confluent-kafka.l4lb.thisdcos.directory:9092 && sleep 60",
   "constraints": [
     [
       "hostname",
