@@ -8,7 +8,7 @@ To start, the specs of my cluster are as stated below:
 - 5 Private Agents
 - DC/OS CLI Installed and authenticated to your Local Machine
 
-- AWS Instance Type: m3.xlarge - 4vCPU, 15GB RAM [See here for more recommended instance types by Confluent](https://www.confluent.io/blog/design-and-deployment-considerations-for-deploying-apache-kafka-on-aws/) 
+- AWS Instance Type: m3.xlarge - 4vCPU, 15GB RAM [See here for more recommended instance types by Confluent](https://www.confluent.io/blog/design-and-deployment-considerations-for-deploying-apache-kafka-on-aws/)
 	- EBS Backed Storage - 60 GB
 
 ### Default Kafka Framework Parameters
@@ -64,174 +64,24 @@ Update fields below:
 If you do not have Kafka deployed yet, you can save the `options.json` configuration below and follow the instructions below, as you can see there are many parameters in Kafka that we can tune:
 ```
 {
-  "brokers": {
-    "count": 3,
+  "service": {
+    "name": "confluent-kafka"
+  },
+	"brokers": {
     "cpus": 3,
-    "disk": 25000,
-    "disk_path": "kafka-broker-data",
-    "disk_type": "ROOT",
+    "mem": 12000,
     "heap": {
       "size": 512
     },
-    "kill_grace_period": 30,
-    "mem": 12000,
-    "port": 0,
-    "port_tls": 0
-  },
-  "kafka": {
-    "auto_create_topics_enable": true,
-    "auto_leader_rebalance_enable": true,
-    "background_threads": 10,
-    "compression_type": "producer",
-    "confluent_metrics_reporter_topic": "_confluent-metrics",
-    "confluent_metrics_reporter_topic_replicas": 3,
-    "confluent_support_customer_id": "anonymous",
-    "confluent_support_metrics_enable": false,
-    "connections_max_idle_ms": 600000,
-    "controlled_shutdown_enable": true,
-    "controlled_shutdown_max_retries": 3,
-    "controlled_shutdown_retry_backoff_ms": 5000,
-    "controller_socket_timeout_ms": 30000,
-    "default_replication_factor": 1,
-    "delete_records_purgatory_purge_interval_requests": 1,
-    "delete_topic_enable": false,
-    "fetch_purgatory_purge_interval_requests": 1000,
-    "group_initial_rebalance_delay_ms": 3000,
-    "group_max_session_timeout_ms": 300000,
-    "group_min_session_timeout_ms": 6000,
-    "inter_broker_protocol_version": "1.0",
-    "kafka_advertise_host_ip": true,
-    "kafka_metrics_reporters": "com.airbnb.kafka.kafka08.StatsdMetricsReporter",
-    "kafka_zookeeper_uri": "",
-    "leader_imbalance_check_interval_seconds": 300,
-    "leader_imbalance_per_broker_percentage": 10,
-    "log_cleaner_backoff_ms": 15000,
-    "log_cleaner_dedupe_buffer_size": 134217728,
-    "log_cleaner_delete_retention_ms": 86400000,
-    "log_cleaner_enable": true,
-    "log_cleaner_io_buffer_load_factor": 0.9,
-    "log_cleaner_io_buffer_size": 524288,
-    "log_cleaner_io_max_bytes_per_second": 1.7976931348623157e+308,
-    "log_cleaner_min_cleanable_ratio": 0.5,
-    "log_cleaner_min_compaction_lag_ms": 0,
-    "log_cleaner_threads": 1,
-    "log_cleanup_policy": "delete",
-    "log_flush_interval_messages": "9223372036854775807",
-    "log_flush_offset_checkpoint_interval_ms": 60000,
-    "log_flush_scheduler_interval_ms": "9223372036854775807",
-    "log_flush_start_offset_checkpoint_interval_ms": 60000,
-    "log_index_interval_bytes": 4096,
-    "log_index_size_max_bytes": 10485760,
-    "log_message_format_version": "1.0",
-    "log_preallocate": false,
-    "log_retention_bytes": "-1",
-    "log_retention_check_interval_ms": 300000,
-    "log_retention_hours": 168,
-    "log_retention_minutes": 10,
-    "log_roll_hours": 168,
-    "log_roll_jitter_hours": 0,
-    "log_segment_bytes": 1073741824,
-    "log_segment_delete_delay_ms": 60000,
-    "max_connections_per_ip": 2147483647,
-    "max_connections_per_ip_overrides": "",
-    "message_max_bytes": 1000012,
-    "metric_reporters": "com.airbnb.kafka.kafka09.StatsdMetricsReporter,io.confluent.metrics.reporter.ConfluentMetricsReporter",
-    "metrics_num_samples": 2,
-    "metrics_sample_window_ms": 30000,
-    "min_insync_replicas": 1,
-    "num_io_threads": 8,
-    "num_network_threads": 3,
-    "num_partitions": 1,
-    "num_recovery_threads_per_data_dir": 1,
-    "num_replica_fetchers": 1,
-    "offset_metadata_max_bytes": 4096,
-    "offsets_commit_required_acks": -1,
-    "offsets_commit_timeout_ms": 5000,
-    "offsets_load_buffer_size": 5242880,
-    "offsets_retention_check_interval_ms": 600000,
-    "offsets_retention_minutes": 1440,
-    "offsets_topic_compression_codec": 0,
-    "offsets_topic_num_partitions": 50,
-    "offsets_topic_replication_factor": 3,
-    "offsets_topic_segment_bytes": 104857600,
-    "producer_purgatory_purge_interval_requests": 1000,
-    "queued_max_request_bytes": -1,
-    "queued_max_requests": 500,
-    "quota_consumer_default": "9223372036854775807",
-    "quota_producer_default": "9223372036854775807",
-    "quota_window_num": 11,
-    "quota_window_size_seconds": 1,
-    "replica_fetch_backoff_ms": 1000,
-    "replica_fetch_max_bytes": 1048576,
-    "replica_fetch_min_bytes": 1,
-    "replica_fetch_response_max_bytes": 10485760,
-    "replica_fetch_wait_max_ms": 500,
-    "replica_high_watermark_checkpoint_interval_ms": 5000,
-    "replica_lag_time_max_ms": 10000,
-    "replica_socket_receive_buffer_bytes": 65536,
-    "replica_socket_timeout_ms": 30000,
-    "replication_quota_window_num": 11,
-    "replication_quota_window_size_seconds": 1,
-    "request_timeout_ms": 30000,
-    "reserved_broker_max_id": 1000,
-    "socket_receive_buffer_bytes": 102400,
-    "socket_request_max_bytes": 104857600,
-    "socket_send_buffer_bytes": 102400,
-    "transaction_abort_timed_out_transaction_cleanup_interval_ms": 60000,
-    "transaction_max_timeout_ms": 900000,
-    "transaction_remove_expired_transaction_cleanup_interval_ms": 3600000,
-    "transaction_state_log_load_buffer_size": 5242880,
-    "transaction_state_log_min_isr": 2,
-    "transaction_state_log_num_partitions": 50,
-    "transaction_state_log_replication_factor": 3,
-    "transaction_state_log_segment_bytes": 104857600,
-    "transactional_id_expiration_ms": 604800000,
-    "unclean_leader_election_enable": false,
-    "zookeeper_session_timeout_ms": 6000,
-    "zookeeper_sync_time_ms": 2000
-  },
-  "service": {
-    "deploy_strategy": "serial",
-    "log_level": "INFO",
-    "mesos_api_version": "V1",
-    "name": "confluent-kafka",
-    "placement_constraint": "[[\"hostname\", \"MAX_PER\", \"1\"]]",
-    "region": "",
-    "security": {
-      "authorization": {
-        "allow_everyone_if_no_acl_found": false,
-        "enabled": false,
-        "super_users": ""
-      },
-      "kerberos": {
-        "debug": false,
-        "enabled": false,
-        "enabled_for_zookeeper": false,
-        "kdc": {},
-        "primary": "kafka"
-      },
-      "ssl_authentication": {
-        "enabled": false
-      },
-      "transport_encryption": {
-        "allow_plaintext": false,
-        "ciphers": "TLS_RSA_WITH_AES_128_GCM_SHA256,TLS_RSA_WITH_AES_128_CBC_SHA256,TLS_RSA_WITH_AES_256_GCM_SHA384,TLS_RSA_WITH_AES_256_CBC_SHA256,TLS_DHE_RSA_WITH_AES_128_GCM_SHA256,TLS_DHE_RSA_WITH_AES_128_CBC_SHA256,TLS_DHE_RSA_WITH_AES_256_GCM_SHA384,TLS_DHE_RSA_WITH_AES_256_CBC_SHA256,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384",
-        "enabled": false
-      }
-    },
-    "service_account": "",
-    "service_account_secret": "",
-    "user": "nobody",
-    "virtual_network_enabled": false,
-    "virtual_network_name": "dcos",
-    "virtual_network_plugin_labels": ""
+		"disk": 25000,
+    "count": 3
   }
 }
 ```
 
 ## Step 1: Install Confluent Kafka
 ```
-dcos package install confluent-kafka --options=options.json --yes
+dcos package install confluent-kafka --options=options-cpkafka.json --yes
 ```
 
 Validate Confluent-Kafka Installation:
@@ -262,26 +112,7 @@ $ dcos confluent-kafka topic create performancetest --partitions 10 --replicatio
 }
 ```
 
-## Step 3: Get the List of Kafka Brokers
-
-From the UI:
-Either from the UI > Services > Kafka > Endpoints
-
-From the CLI:
-```
-dcos confluent-kafka endpoint broker | jq -r .dns[] | paste -sd, -
-```
-**Note:** jq might need to be installed if not already. See [jq installation](https://github.com/stedolan/jq/wiki/Installation)
-
-Output should look similar to below:
-```
-$ dcos confluent-kafka endpoint broker | jq -r .dns[] | paste -sd, -
-kafka-0-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-1-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-2-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025
-```
-
-Notice that the broker DNS hostnames follow a common pattern `kafka-0-broker.<service-name>.autoip.dcos.thisdcos.directory:1025` provided by Mesos-DNS. This allows for DC/OS to manage service discovery when issues arise such as a broker failure. Using the DNS hostname we can abstract the need to know and reconfigure a static IP:port pairing.
-
-## Step 4: Run the Confluent Kafka performance tests
+## Step 3: Run the Confluent Kafka performance tests
 
 In this test we are using the following parameters:
 - Topic: performancetest
@@ -360,7 +191,7 @@ Note: Note that running multiple producers from the same node is less effective 
 
 Launch the marathon service:
 ```
-dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/250-baseline.json
+dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/cpkafka_tests/250-baseline.json
 ```
 
 Navigate to the DC/OS UI --> Services --> 250-baseline --> logs --> Output (stdout) to view performance test results:
@@ -396,7 +227,7 @@ In this test we are using the following parameters:
 
 Deploy the Service:
 ```
-dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/1consumer-topic-performancetest.json
+dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/cpkafka_tests/1consumer-topic-performancetest.json
 ```
 
 Navigate to the DC/OS UI --> Services --> 1consumer-topic-performancetest --> logs --> Output (stdout) to view performance test results. Example Output (Edited for readability):
@@ -418,7 +249,7 @@ Remove the Service:
 dcos marathon app remove 1consumer-topic-performancetest
 ```
 
-## Step 5: Understand baseline performance
+## Step 4: Understand baseline performance
 
 My variable parameter was `record-size` in bytes which I averaged across 5 runs:
 
@@ -426,7 +257,7 @@ My variable parameter was `record-size` in bytes which I averaged across 5 runs:
 
 Run the Service:
 ```
-dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/250-baseline.json
+dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/cpkafka_tests/250-baseline.json
 ```
 
 Example Output over 5 runs:
@@ -449,7 +280,7 @@ dcos marathon app remove 250-baseline
 
 Run the Service:
 ```
-dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/500-baseline.json
+dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/cpkafka_tests/500-baseline.json
 ```
 
 Example output over 5 runs:
@@ -472,7 +303,7 @@ dcos marathon app remove 500-baseline
 
 Run the Service:
 ```
-dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/1000-baseline.json
+dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/cpkafka_tests/1000-baseline.json
 ```
 
 Example output over 5 runs:
@@ -520,7 +351,7 @@ For increasing throughput of Consumers, Confluent recommends:
 
 Deploy the service:
 ```
-dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/1producer-lower-topic-performancetest.json
+dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/cpkafka_tests/1producer-lower-topic-performancetest.json
 ```
 
 Example Output in the logs:
@@ -543,7 +374,7 @@ dcos marathon app remove 1producer-lower-topic-performancetest
 
 Deploy Service:
 ```
-dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/1producer-higher-topic-performancetest.json
+dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/cpkafka_tests/1producer-higher-topic-performancetest.json
 ```
 
 Example Output in the logs:
@@ -563,7 +394,7 @@ dcos marathon app remove 1producer-higher-topic-performancetest
 
 Run the Service:
 ```
-dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/1consumer-higher-topic-performancetest.json
+dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/cpkafka_tests/1consumer-higher-topic-performancetest.json
 ```
 
 Output:
@@ -591,7 +422,7 @@ dcos marathon app remove 1consumer-higher-topic-performancetest
 Lower Range - 60% increase in Throughput
 Higher Range - 37% increase in Throughput
 
-By tuning for throughput and increasing the batch.size, linger.ms, and compression.type parameters we can see a significant increase in throughput performance as well as latency performance of our Kafka cluster. For a 250 byte record it seems as though the lower end ranges are more ideal, resulting in >700K records/sec at a low 8.83 ms avg latency. The upper end also saw improvements in performance, but may be more ideal for a situation where the record size is much larger. 
+By tuning for throughput and increasing the batch.size, linger.ms, and compression.type parameters we can see a significant increase in throughput performance as well as latency performance of our Kafka cluster. For a 250 byte record it seems as though the lower end ranges are more ideal, resulting in >700K records/sec at a low 8.83 ms avg latency. The upper end also saw improvements in performance, but may be more ideal for a situation where the record size is much larger.
 
 For the rest of the testing, we will utilize the Lower Range parameters, but it would be advised to do more A/B testing within the range to optimize for your specific record-size
 
@@ -613,7 +444,7 @@ Now that we have reached a "peak" in our current configuration (3CPU, 12GB MEM, 
 - 3 CPU
 - 12GB MEM
 - 25 GB Disk
-- 512 MB JVM Heap Size 
+- 512 MB JVM Heap Size
 
 As you can see, nothing has changed above from our prior configuration except for scaling from 3 to 6 Kafka brokers. You can do so by passing an update command with an updated options.json file, or through the UI change Kafka broker count to 6.
 
@@ -640,7 +471,7 @@ Now lets run the same single producer Kafka performance test optimized for throu
 
 Deploy the Service:
 ```
-dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/1producer-lower-topic-performancetest.json
+dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/cpkafka_tests/1producer-lower-topic-performancetest.json
 ```
 
 Example Output in Logs:
@@ -716,7 +547,7 @@ Description of Producer Service:
 
 Launch the marathon service:
 ```
-dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/3producer-topic-performancetest.json
+dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/cpkafka_tests/3producer-topic-performancetest.json
 ```
 
 Navigate to the UI --> Services --> confluent-producer --> logs --> Output (stdout) to view performance test results:
@@ -755,7 +586,7 @@ As you can see from above, running multiple Producers in parallel I was able to 
 
 Launch the marathon service:
 ```
-dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/5producer-topic-performancetest.json
+dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/cpkafka_tests/5producer-topic-performancetest.json
 ```
 
 Output from Logs:
@@ -795,7 +626,7 @@ Total: 22 Nodes (We will scale to 9x brokers later)
 
 Deploy the service:
 ```
-dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/10producer-topic-performancetest.json
+dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/cpkafka_tests/10producer-topic-performancetest.json
 ```
 
 Output from Logs:
@@ -823,7 +654,7 @@ dcos marathon app remove 10producer-topic-performancetest
 
 Deploy the service:
 ```
-dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/15producer-topic-performancetest.json
+dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/cpkafka_tests/15producer-topic-performancetest.json
 ```
 
 Output from logs:
@@ -883,7 +714,7 @@ dcos confluent-kafka topic create performancetest3 --partitions 30 --replication
 
 Deploy the Service:
 ```
-dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/15producer-topic-performancetest2.json
+dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/cpkafka_tests/15producer-topic-performancetest2.json
 ```
 
 Output from Logs:
@@ -916,7 +747,7 @@ dcos marathon app remove 15producer-topic-performancetest2
 
 Deploy the Service:
 ```
-dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/15producer-topic-performancetest3.json
+dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/cpkafka_tests/15producer-topic-performancetest3.json
 ```
 
 Output from Logs:
@@ -987,7 +818,7 @@ deploy (serial strategy) (COMPLETE)
 
 Deploy the Service:
 ```
-dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/25producer-topic-performancetest3.json
+dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/cpkafka_tests/25producer-topic-performancetest3.json
 ```
 
 Example Output from Logs:
@@ -1064,7 +895,7 @@ For optimizing durability of Brokers, Confluent recommends:
 - default.replication.factor - 3 (default 1)
 - auto.create.topics.enable - false (default true)
 - min.insync.replicas - 2 (default 1)
-- unclean.leader.election.enable - false (default true) 
+- unclean.leader.election.enable - false (default true)
 - broker.rack - rack of the broker (default null)
 - log.flush.interval.messages / log.flush.interval.ms - for topics with very low throughput, set message interval or time interval low as needed (default allows the OS to control flushing)
 

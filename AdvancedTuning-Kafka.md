@@ -92,26 +92,7 @@ $ dcos kafka topic create performancetest --partitions 10 --replication 3
 }
 ```
 
-## Step 3: Get the List of Kafka Brokers
-
-From the UI:
-Either from the UI > Services > Kafka > Endpoints
-
-From the CLI:
-```
-dcos kafka endpoint broker | jq -r .dns[] | paste -sd, -
-```
-**Note:** jq might need to be installed if not already. See [jq installation](https://github.com/stedolan/jq/wiki/Installation)
-
-Output should look similar to below:
-```
-$ dcos kafka endpoint broker | jq -r .dns[] | paste -sd, -
-kafka-0-broker.kafka.autoip.dcos.thisdcos.directory:1025,kafka-1-broker.kafka.autoip.dcos.thisdcos.directory:1025,kafka-2-broker.kafka.autoip.dcos.thisdcos.directory:1025
-```
-
-Notice that the broker DNS hostnames follow a common pattern `kafka-0-broker.<service-name>.autoip.dcos.thisdcos.directory:1025` provided by Mesos-DNS. This allows for DC/OS to manage service discovery when issues arise such as a broker failure. Using the DNS hostname we can abstract the need to know and reconfigure a static IP:port pairing.
-
-## Step 4: Run the Confluent Kafka performance tests
+## Step 3: Run the Kafka performance tests
 
 In this test we are using the following parameters:
 - Topic: performancetest
@@ -190,26 +171,19 @@ Note: Note that running multiple producers from the same node is less effective 
 
 Launch the marathon service:
 ```
-dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/250-baseline.json
+dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/kafka_tests/250-baseline.json
 ```
 
 Navigate to the DC/OS UI --> Services --> 250-baseline --> logs --> Output (stdout) to view performance test results:
 ```
 (AT BEGINNING OF FILE)
-Marked '/' as rslave
-Prepared mount '{"flags":20480,"source":"\/var\/lib\/mesos\/slave\/slaves\/e77195fd-0c64-4b78-8d51-1223609f3b73-S0\/frameworks\/e77195fd-0c64-4b78-8d51-1223609f3b73-0001\/executors\/1producer-topic-performancetest.json.3ed2a367-9f28-11e8-982a-3a84e2ff092b\/runs\/0c5cf368-1735-4489-aa6f-edcb8c8b68c8","target":"\/var\/lib\/mesos\/slave\/provisioner\/containers\/0c5cf368-1735-4489-aa6f-edcb8c8b68c8\/backends\/overlay\/rootfses\/f10a0444-b960-4999-b3ed-d22dea5df960\/mnt\/mesos\/sandbox"}'
-Prepared mount '{"flags":14,"source":"proc","target":"\/proc","type":"proc"}'
-Executing pre-exec command '{"arguments":["mount","-n","-t","ramfs","ramfs","\/var\/lib\/mesos\/slave\/slaves\/e77195fd-0c64-4b78-8d51-1223609f3b73-S0\/frameworks\/e77195fd-0c64-4b78-8d51-1223609f3b73-0001\/executors\/1producer-topic-performancetest.json.3ed2a367-9f28-11e8-982a-3a84e2ff092b\/runs\/0c5cf368-1735-4489-aa6f-edcb8c8b68c8\/.secret-06519df1-4c54-4a9c-9798-9c9f538440df"],"shell":false,"value":"mount"}'
-Changing root to /var/lib/mesos/slave/provisioner/containers/0c5cf368-1735-4489-aa6f-edcb8c8b68c8/backends/overlay/rootfses/f10a0444-b960-4999-b3ed-d22dea5df960
-1127164 records sent, 225432.8 records/sec (53.75 MB/sec), 273.8 ms avg latency, 705.0 max latency.
-2322632 records sent, 464526.4 records/sec (110.75 MB/sec), 147.6 ms avg latency, 719.0 max latency.
-2507524 records sent, 501504.8 records/sec (119.57 MB/sec), 170.6 ms avg latency, 803.0 max latency.
-2477901 records sent, 495580.2 records/sec (118.16 MB/sec), 114.3 ms avg latency, 456.0 max latency.
-10000000 records sent, 434027.777778 records/sec (103.48 MB/sec), 150.00 ms avg latency, 803.00 ms max latency, 20 ms 50th, 342 ms 95th, 433 ms 99th, 459 ms 99.9th.
+3094865 records sent, 618973.0 records/sec (147.57 MB/sec), 36.5 ms avg latency, 311.0 max latency.
+4065176 records sent, 813035.2 records/sec (193.84 MB/sec), 45.6 ms avg latency, 369.0 max latency.
+10000000 records sent, 749568.997826 records/sec (178.71 MB/sec), 45.86 ms avg latency, 369.00 ms max latency, 4 ms 50th, 129 ms 95th, 145 ms 99th, 152 ms 99.9th.
 ```
 
 #### Initial Thoughts:
-Here we can see that increasing the parameters of the Kafka framework we are able to increase the throughput performance almost double to > 400k messages per second.
+Here we can see that increasing the parameters of the Kafka framework we are able to increase the throughput performance significantly from the default deploy
 
 Remove the service:
 ```
@@ -226,21 +200,22 @@ In this test we are using the following parameters:
 
 Deploy the Service:
 ```
-dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/1consumer-topic-performancetest.json
+dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/kafka_tests/1consumer-topic-performancetest.json
 ```
 
 Navigate to the DC/OS UI --> Services --> 1consumer-topic-performancetest --> logs --> Output (stdout) to view performance test results. Example Output (Edited for readability):
 ```
-start.time - 2018-08-13 18:55:38:126
-end.time - 2018-08-13 18:56:12:282
-data.consumed.in.MB - 3576.2863
-MB.sec - 104.7045
-data.consumed.in.nMsg - 15000032
-nMsg.sec - 439162.4312
-rebalance.time.ms - 3021
-fetch.time.ms - 31135
-fetch.MB.sec - 114.8639
-fetch.nMsg.sec - 481773.9521
+(AT BEGINNING OF FILE)
+start.time - 2018-11-14 19:20:16:527
+end.time - 2018-11-14 19:20:55:536
+data.consumed.in.MB - 3576.3934
+MB.sec - 312.3213
+data.consumed.in.nMsg - 15000474
+nMsg.sec - 1309970.6576
+rebalance.time.ms - 3015
+fetch.time.ms - 8436
+fetch.MB.sec - 423.9440
+fetch.nMsg.sec - 1778150.0711
 ```
 
 Remove the Service:
@@ -248,7 +223,7 @@ Remove the Service:
 dcos marathon app remove 1consumer-topic-performancetest
 ```
 
-## Step 5: Understand baseline performance
+## Step 4: Understand baseline performance
 
 My variable parameter was `record-size` in bytes which I averaged across 5 runs:
 
@@ -256,7 +231,7 @@ My variable parameter was `record-size` in bytes which I averaged across 5 runs:
 
 Run the Service:
 ```
-dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/250-baseline.json
+dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/kafka_tests/250-baseline.json
 ```
 
 Example Output over 5 runs:
@@ -279,7 +254,7 @@ dcos marathon app remove 250-baseline
 
 Run the Service:
 ```
-dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/500-baseline.json
+dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/kafka_tests/500-baseline.json
 ```
 
 Example output over 5 runs:
@@ -302,7 +277,7 @@ dcos marathon app remove 500-baseline
 
 Run the Service:
 ```
-dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/1000-baseline.json
+dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/kafka_tests/1000-baseline.json
 ```
 
 Example output over 5 runs:
@@ -350,7 +325,7 @@ For increasing throughput of Consumers, Confluent recommends:
 
 Deploy the service:
 ```
-dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/1producer-lower-topic-performancetest.json
+dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/kafka_tests/1producer-lower-topic-performancetest.json
 ```
 
 Example Output in the logs:
@@ -373,7 +348,7 @@ dcos marathon app remove 1producer-lower-topic-performancetest
 
 Deploy Service:
 ```
-dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/1producer-higher-topic-performancetest.json
+dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/kafka_tests/1producer-higher-topic-performancetest.json
 ```
 
 Example Output in the logs:
@@ -393,7 +368,7 @@ dcos marathon app remove 1producer-higher-topic-performancetest
 
 Run the Service:
 ```
-dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/1consumer-higher-topic-performancetest.json
+dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/kafka_tests/1consumer-higher-topic-performancetest.json
 ```
 
 Output:
@@ -470,7 +445,7 @@ Now lets run the same single producer Kafka performance test optimized for throu
 
 Deploy the Service:
 ```
-dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/1producer-lower-topic-performancetest.json
+dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/kafka_tests/1producer-lower-topic-performancetest.json
 ```
 
 Example Output in Logs:
@@ -546,7 +521,7 @@ Description of Producer Service:
 
 Launch the marathon service:
 ```
-dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/3producer-topic-performancetest.json
+dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/kafka_tests/3producer-topic-performancetest.json
 ```
 
 Navigate to the UI --> Services --> confluent-producer --> logs --> Output (stdout) to view performance test results:
@@ -585,7 +560,7 @@ As you can see from above, running multiple Producers in parallel I was able to 
 
 Launch the marathon service:
 ```
-dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/5producer-topic-performancetest.json
+dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/kafka_tests/5producer-topic-performancetest.json
 ```
 
 Output from Logs:
@@ -625,7 +600,7 @@ Total: 22 Nodes (We will scale to 9x brokers later)
 
 Deploy the service:
 ```
-dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/10producer-topic-performancetest.json
+dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/kafka_tests/10producer-topic-performancetest.json
 ```
 
 Output from Logs:
@@ -653,7 +628,7 @@ dcos marathon app remove 10producer-topic-performancetest
 
 Deploy the service:
 ```
-dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/15producer-topic-performancetest.json
+dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/kafka_tests/15producer-topic-performancetest.json
 ```
 
 Output from logs:
@@ -713,7 +688,7 @@ dcos kafka topic create performancetest3 --partitions 30 --replication 3
 
 Deploy the Service:
 ```
-dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/15producer-topic-performancetest2.json
+dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/kafka_tests/15producer-topic-performancetest2.json
 ```
 
 Output from Logs:
@@ -746,7 +721,7 @@ dcos marathon app remove 15producer-topic-performancetest2
 
 Deploy the Service:
 ```
-dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/15producer-topic-performancetest3.json
+dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/kafka_tests/15producer-topic-performancetest3.json
 ```
 
 Output from Logs:
@@ -817,7 +792,7 @@ deploy (serial strategy) (COMPLETE)
 
 Deploy the Service:
 ```
-dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/25producer-topic-performancetest3.json
+dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/kafka_tests/25producer-topic-performancetest3.json
 ```
 
 Example Output from Logs:
