@@ -9,7 +9,7 @@ To start, the specs of my cluster are as stated below:
 - DC/OS CLI Installed and authenticated to your Local Machine
 
 - AWS Instance Type: m3.xlarge - 4vCPU, 15GB RAM [See here for more recommended instance types by Confluent](https://www.confluent.io/blog/design-and-deployment-considerations-for-deploying-apache-kafka-on-aws/)
-	- EBS Backed Storage - 60 GB
+    - EBS Backed Storage - 60 GB
 
 ### Default Kafka Framework Parameters
 Note that the default Kafka package has these specifications for brokers:
@@ -47,13 +47,13 @@ If you do not have Kafka deployed yet, you can save the `options.json` configura
   "service": {
     "name": "kafka"
   },
-	"brokers": {
+    "brokers": {
     "cpus": 3,
     "mem": 12000,
     "heap": {
       "size": 512
     },
-		"disk": 25000,
+        "disk": 25000,
     "count": 3
   }
 }
@@ -102,12 +102,12 @@ In this test we are using the following parameters:
 - Ack: 1 write
         - This allows Kafka to acknowledge 1 write only and let the remaining 2 replicas write in the background
 - Buffer Memory: 67108864 (default)
-	- Increasing buffer.memory allows Kafka to take longer before the producer starts blocking on additional sends, thereby increasing throughput. If you don't have a lot of partitions, you may not need to adjust this at all. However, if you have a lot of partitions you can tune this value taking into account the buffer size, linger time, and partition count.
+    - Increasing buffer.memory allows Kafka to take longer before the producer starts blocking on additional sends, thereby increasing throughput. If you don't have a lot of partitions, you may not need to adjust this at all. However, if you have a lot of partitions you can tune this value taking into account the buffer size, linger time, and partition count.
 - Batch Size: 8196 (default)
-	- Producers can batch messages going to the same partition, tuning the producer batching to increase the batch size and time spent waiting for the batch to fill up with messages. Larger batch sizes result in fewer requests to the brokers, which reduces load on producers as well as broker CPU. Tradeoff is higher latency since messages are not sent as soon as they are ready to send
+    - Producers can batch messages going to the same partition, tuning the producer batching to increase the batch size and time spent waiting for the batch to fill up with messages. Larger batch sizes result in fewer requests to the brokers, which reduces load on producers as well as broker CPU. Tradeoff is higher latency since messages are not sent as soon as they are ready to send
 - linger.ms: 0 (default)
-	- linger.ms set at 0 means that records will immediately be sent even if there is additional unused space in the buffer.
-	- If the measure of performance you really care about is throughput, you can configure the linger.ms parameter to have the producer wait longer before sending. This allows the producer to wait for the batch to reach the configured batch.size
+    - linger.ms set at 0 means that records will immediately be sent even if there is additional unused space in the buffer.
+    - If the measure of performance you really care about is throughput, you can configure the linger.ms parameter to have the producer wait longer before sending. This allows the producer to wait for the batch to reach the configured batch.size
 - Compression Type: none
         - Can set to options: none, lz4, gzip, snappy
 
@@ -411,7 +411,7 @@ Now that we have reached a "peak" in our current configuration (3CPU, 12GB MEM, 
 - 12 Private Agents
 - DC/OS CLI Installed and authenticated to your Local Machine
 - AWS Instance Type: m3.xlarge - 4vCPU, 15GB RAM See here for more recommended instance types by Confluent
-	- EBS Backed Storage - 60 GB
+    - EBS Backed Storage - 60 GB
 
 ### Kafka Cluster Parameters
 - 6x Brokers
@@ -589,7 +589,7 @@ As you can see from above, as we scale our Producers in parallel we can observe 
 - 25 Private Agents
 - DC/OS CLI Installed and authenticated to your Local Machine
 - AWS Instance Type: m3.xlarge - 4vCPU, 15GB RAM See here for more recommended instance types by Confluent
-	- EBS Backed Storage - 60 GB
+    - EBS Backed Storage - 60 GB
 
 ### Test Setup:
 - 6x Kafka Brokers
@@ -862,7 +862,7 @@ For optimizing durability of Producers, Confluent recommends:
 - acks - all
 - retries - 1
 - max.in.flight.requests.per.connection - 1 (default 5)
-	- to prevent out of order messages
+    - to prevent out of order messages
 
 #### Brokers
 For optimizing durability of Brokers, Confluent recommends:
@@ -888,3 +888,4 @@ For optimizing availability of Brokers, Confluent recommends:
 #### Consumers
 For optimizing availability of Consumers, Confluent recommends:
 - session.timeout.ms - as low as feasible (default 10000)
+
