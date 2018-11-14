@@ -59,7 +59,7 @@ If you do not have Kafka deployed yet, you can save the `options.json` configura
 }
 ```
 
-## Step 1: Install Confluent Kafka
+## Step 1: Install Kafka
 ```
 dcos package install kafka --options=options-kafka.json --yes
 ```
@@ -130,7 +130,7 @@ In this test we are using the following parameters:
 - Compression Type: none
         - Can set to options: none, lz4, gzip, snappy
 
-Here is the example application definition for our performance test service that we will call `250-baseline.json`
+Here is the example application definition for our performance test service that we will call `250-baseline-kafka.json`
 ```
 {
   "id": "/250-baseline",
