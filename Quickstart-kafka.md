@@ -1,4 +1,4 @@
-# Load Testing Confluent-Kafka Quickstart
+# Load Testing Apache Kafka Quickstart
 Want to load test our Confluent Kafka framework? Here is a guide that will take you through basic performance testing, as well as expand into other areas of how to begin performance tuning your Kafka cluster based on Confluent Kafka best practices and existing tools already provided
 
 ## Prerequisites
@@ -8,12 +8,12 @@ For this guide, the specs of my cluster are as stated below:
 - 4 Private Agents
 - DC/OS CLI Installed and authenticated to your Local Machine
 
-- AWS Instance Type: m3.xlarge - 4vCPU, 15GB RAM [See here for more recommended instance types by Confluent](https://www.confluent.io/blog/design-and-deployment-considerations-for-deploying-apache-kafka-on-aws/) 
+- AWS Instance Type: m3.xlarge - 4vCPU, 15GB RAM [See here for more recommended instance types by Confluent](https://www.confluent.io/blog/design-and-deployment-considerations-for-deploying-apache-kafka-on-aws/)
 	- EBS Backed Storage - 60 GB
 
-## Step 1: Install Confluent Kafka
+## Step 1: Install Apache Kafka
 ```
-dcos package install confluent-kafka --yes
+dcos package install kafka --yes
 ```
 
 ### Default Kafka Framework Parameters:
@@ -26,14 +26,14 @@ The default Kafka package has these specifications for brokers:
 
 Note that the defaults make up a rather small Kafka deployment, later we will explore tuning further inside Kafka as well as scaling out  when we go into more Advanced Tuning Tutorials. But for now we will just be load testing the default install of our framework.
 
-Validate Confluent-Kafka Installation:
+Validate kafka Installation:
 ```
-dcos confluent-kafka plan status deploy
+dcos kafka plan status deploy
 ```
 
 Output should look like below when complete:
 ```
-$ dcos confluent-kafka plan status deploy
+$ dcos kafka plan status deploy
 deploy (serial strategy) (COMPLETE)
 └─ broker (serial strategy) (COMPLETE)
    ├─ kafka-0:[broker] (COMPLETE)
@@ -43,12 +43,12 @@ deploy (serial strategy) (COMPLETE)
 
 ## Step 2: Add a test topic from the DC/OS cli
 ```
-dcos confluent-kafka topic create performancetest --partitions 10 --replication 3
+dcos kafka topic create performancetest --partitions 10 --replication 3
 ```
 
 Output should look similar to below:
 ```
-$ dcos confluent-kafka topic create performancetest --partitions 10 --replication 3
+$ dcos kafka topic create performancetest --partitions 10 --replication 3
 {
   "message": "Output: Created topic \"performancetest\".\n"
 }
@@ -61,14 +61,14 @@ Either from the UI > Services > Kafka > Endpoints
 
 From the CLI:
 ```
-dcos confluent-kafka endpoint broker | jq -r .dns[] | paste -sd, -
+dcos kafka endpoint broker | jq -r .dns[] | paste -sd, -
 ```
 **Note:** jq might need to be installed if not already. See [jq installation](https://github.com/stedolan/jq/wiki/Installation)
 
 Output should look similar to below:
 ```
-$ dcos confluent-kafka endpoint broker | jq -r .dns[] | paste -sd, -
-kafka-0-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-1-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-2-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025
+$ dcos kafka endpoint broker | jq -r .dns[] | paste -sd, -
+kafka-0-broker.kafka.autoip.dcos.thisdcos.directory:1025,kafka-1-broker.kafka.autoip.dcos.thisdcos.directory:1025,kafka-2-broker.kafka.autoip.dcos.thisdcos.directory:1025
 ```
 
 Save this as we will need this output later for our Performance test.
@@ -124,7 +124,7 @@ Failed Units: 1
 core@ip-10-0-5-167 ~ $
 ```
 
-## Step 5: Run the Confluent Kafka Docker Image
+## Step 5: Run the Confluent Kafka Producer/Consumer Tests:
 
 The command below will run the Confluent Kafka docker image which contains multiple tools that we can use to produce, consume, and performance test our Kafka deployment
 ```
@@ -133,23 +133,23 @@ sudo docker run -it confluentinc/cp-kafka /bin/bash
 
 ### Test producing a message
 ```
-echo “This is a test at $(date)” | kafka-console-producer --broker-list kafka-0-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-1-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-2-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025 --topic performancetest
+echo “This is a test at $(date)” | kafka-console-producer --broker-list kafka-0-broker.kafka.autoip.dcos.thisdcos.directory:1025,kafka-1-broker.kafka.autoip.dcos.thisdcos.directory:1025,kafka-2-broker.kafka.autoip.dcos.thisdcos.directory:1025 --topic performancetest
 ```
 
 ### Test consuming a message
 ```
-kafka-console-consumer --bootstrap-server kafka-0-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-1-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-2-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025 --topic performancetest --from-beginning
+kafka-console-consumer --bootstrap-server kafka-0-broker.kafka.autoip.dcos.thisdcos.directory:1025,kafka-1-broker.kafka.autoip.dcos.thisdcos.directory:1025,kafka-2-broker.kafka.autoip.dcos.thisdcos.directory:1025 --topic performancetest --from-beginning
 ```
 
 Output should look similar to below:
 ```
-root@ba372c143b80:/# kafka-console-consumer --bootstrap-server kafka-0-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-1-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-2-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025 --topic performancetest --from-beginning
+root@ba372c143b80:/# kafka-console-consumer --bootstrap-server kafka-0-broker.kafka.autoip.dcos.thisdcos.directory:1025,kafka-1-broker.kafka.autoip.dcos.thisdcos.directory:1025,kafka-2-broker.kafka.autoip.dcos.thisdcos.directory:1025 --topic performancetest --from-beginning
 “This is a test at Fri Aug 3 17:24:54 UTC 2018”
 ```
 
 ## Step 6: Run the Kafka Performance Test:
 ```
-kafka-producer-perf-test --topic performancetest --num-records 5000000 --record-size 250 --throughput 1000000 --producer-props acks=1 buffer.memory=67108864 compression.type=none batch.size=8196 bootstrap.servers=kafka-0-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-1-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-2-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025
+kafka-producer-perf-test --topic performancetest --num-records 5000000 --record-size 250 --throughput 1000000 --producer-props acks=1 buffer.memory=67108864 compression.type=none batch.size=8196 bootstrap.servers=kafka-0-broker.kafka.autoip.dcos.thisdcos.directory:1025,kafka-1-broker.kafka.autoip.dcos.thisdcos.directory:1025,kafka-2-broker.kafka.autoip.dcos.thisdcos.directory:1025
 ```
 
 In this test we are using the following parameters:
@@ -178,7 +178,7 @@ As you can see from above, our first test with the default framework parameters 
 
 You can also append the `--print-metrics` flag to the performance test to retrieve more descriptive metrics information:
 ```
-kafka-producer-perf-test --topic performancetest --num-records 5000000 --record-size 250 --throughput 1000000 --producer-props acks=1 buffer.memory=67108864 compression.type=none batch.size=8196 bootstrap.servers=kafka-0-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-1-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-2-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025 --print-metrics
+kafka-producer-perf-test --topic performancetest --num-records 5000000 --record-size 250 --throughput 1000000 --producer-props acks=1 buffer.memory=67108864 compression.type=none batch.size=8196 bootstrap.servers=kafka-0-broker.kafka.autoip.dcos.thisdcos.directory:1025,kafka-1-broker.kafka.autoip.dcos.thisdcos.directory:1025,kafka-2-broker.kafka.autoip.dcos.thisdcos.directory:1025 --print-metrics
 ```
 
 Output should look similar to below:
@@ -336,7 +336,7 @@ producer-topic-metrics:record-send-total:{client-id=producer-1, topic=performanc
 
 ### Kafka Consumer Performance Testing
 ```
-kafka-consumer-perf-test --topic performancetest --messages 15000000 --threads 1 --broker-list=kafka-0-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-1-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-2-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025
+kafka-consumer-perf-test --topic performancetest --messages 15000000 --threads 1 --broker-list=kafka-0-broker.kafka.autoip.dcos.thisdcos.directory:1025,kafka-1-broker.kafka.autoip.dcos.thisdcos.directory:1025,kafka-2-broker.kafka.autoip.dcos.thisdcos.directory:1025
 ```
 - Topic: performancetest
 - Number of Messages to Consume: 1.5M
@@ -441,4 +441,3 @@ Average: 137302.09 records/sec, 65.47 MB/sec, 801.39 ms avg latency, 3732 ms max
 
 ## Conclusion
 At this point we have shown how to use DC/OS to spin up our default Kafka framework, as well as using the tools within the package to perform some basic load testing. As you can see from above, the 3x broker (1 CPU, 2048 MEM, 5GB DISK) default configuration hovers around ~250K msg/sec throughput on a 4 node (m3.xlarge) DC/OS Cluster. As the record-size increases, we notice that latency and throughput start to suffer - this is potentially due to not having enough horsepower. In our Advanced tutorial we will move forward to tune parameters within Kafka itself, as well as test horizontal scaling of the cluster.
-
