@@ -133,23 +133,23 @@ sudo docker run -it confluentinc/cp-kafka /bin/bash
 
 ### Test producing a message
 ```
-echo “This is a test at $(date)” | kafka-console-producer --broker-list kafka-0-broker.kafka.autoip.dcos.thisdcos.directory:1025,kafka-1-broker.kafka.autoip.dcos.thisdcos.directory:1025,kafka-2-broker.kafka.autoip.dcos.thisdcos.directory:1025 --topic performancetest
+echo “This is a test at $(date)” | kafka-console-producer --broker-list kafka-0-broker.kafka.autoip.dcos.thisdcos.directory:1025,kafka-1-broker.kafka.autoip.dcos.thisdcos.directory:1026,kafka-2-broker.kafka.autoip.dcos.thisdcos.directory:1025 --topic performancetest
 ```
 
 ### Test consuming a message
 ```
-kafka-console-consumer --bootstrap-server kafka-0-broker.kafka.autoip.dcos.thisdcos.directory:1025,kafka-1-broker.kafka.autoip.dcos.thisdcos.directory:1025,kafka-2-broker.kafka.autoip.dcos.thisdcos.directory:1025 --topic performancetest --from-beginning
+kafka-console-consumer --bootstrap-server kafka-0-broker.kafka.autoip.dcos.thisdcos.directory:1025,kafka-1-broker.kafka.autoip.dcos.thisdcos.directory:1026,kafka-2-broker.kafka.autoip.dcos.thisdcos.directory:1025 --topic performancetest --from-beginning
 ```
 
 Output should look similar to below:
 ```
-root@ba372c143b80:/# kafka-console-consumer --bootstrap-server kafka-0-broker.kafka.autoip.dcos.thisdcos.directory:1025,kafka-1-broker.kafka.autoip.dcos.thisdcos.directory:1025,kafka-2-broker.kafka.autoip.dcos.thisdcos.directory:1025 --topic performancetest --from-beginning
+root@ba372c143b80:/# kafka-console-consumer --bootstrap-server kafka-0-broker.kafka.autoip.dcos.thisdcos.directory:1025,kafka-1-broker.kafka.autoip.dcos.thisdcos.directory:1026,kafka-2-broker.kafka.autoip.dcos.thisdcos.directory:1025 --topic performancetest --from-beginning
 “This is a test at Fri Aug 3 17:24:54 UTC 2018”
 ```
 
 ## Step 6: Run the Kafka Performance Test:
 ```
-kafka-producer-perf-test --topic performancetest --num-records 5000000 --record-size 250 --throughput 1000000 --producer-props acks=1 buffer.memory=67108864 compression.type=none batch.size=8196 bootstrap.servers=kafka-0-broker.kafka.autoip.dcos.thisdcos.directory:1025,kafka-1-broker.kafka.autoip.dcos.thisdcos.directory:1025,kafka-2-broker.kafka.autoip.dcos.thisdcos.directory:1025
+kafka-producer-perf-test --topic performancetest --num-records 5000000 --record-size 250 --throughput 1000000 --producer-props acks=1 buffer.memory=67108864 compression.type=none batch.size=8196 bootstrap.servers=kafka-0-broker.kafka.autoip.dcos.thisdcos.directory:1025,kafka-1-broker.kafka.autoip.dcos.thisdcos.directory:1026,kafka-2-broker.kafka.autoip.dcos.thisdcos.directory:1025
 ```
 
 In this test we are using the following parameters:
@@ -178,7 +178,7 @@ As you can see from above, our first test with the default framework parameters 
 
 You can also append the `--print-metrics` flag to the performance test to retrieve more descriptive metrics information:
 ```
-kafka-producer-perf-test --topic performancetest --num-records 5000000 --record-size 250 --throughput 1000000 --producer-props acks=1 buffer.memory=67108864 compression.type=none batch.size=8196 bootstrap.servers=kafka-0-broker.kafka.autoip.dcos.thisdcos.directory:1025,kafka-1-broker.kafka.autoip.dcos.thisdcos.directory:1025,kafka-2-broker.kafka.autoip.dcos.thisdcos.directory:1025 --print-metrics
+kafka-producer-perf-test --topic performancetest --num-records 5000000 --record-size 250 --throughput 1000000 --producer-props acks=1 buffer.memory=67108864 compression.type=none batch.size=8196 bootstrap.servers=kafka-0-broker.kafka.autoip.dcos.thisdcos.directory:1025,kafka-1-broker.kafka.autoip.dcos.thisdcos.directory:1026,kafka-2-broker.kafka.autoip.dcos.thisdcos.directory:1025 --print-metrics
 ```
 
 Output should look similar to below:
@@ -336,7 +336,7 @@ producer-topic-metrics:record-send-total:{client-id=producer-1, topic=performanc
 
 ### Kafka Consumer Performance Testing
 ```
-kafka-consumer-perf-test --topic performancetest --messages 15000000 --threads 1 --broker-list=kafka-0-broker.kafka.autoip.dcos.thisdcos.directory:1025,kafka-1-broker.kafka.autoip.dcos.thisdcos.directory:1025,kafka-2-broker.kafka.autoip.dcos.thisdcos.directory:1025
+kafka-consumer-perf-test --topic performancetest --messages 15000000 --threads 1 --broker-list=kafka-0-broker.kafka.autoip.dcos.thisdcos.directory:1025,kafka-1-broker.kafka.autoip.dcos.thisdcos.directory:1026,kafka-2-broker.kafka.autoip.dcos.thisdcos.directory:1025
 ```
 - Topic: performancetest
 - Number of Messages to Consume: 1.5M
