@@ -1,0 +1,45 @@
+{
+  "id": "/1consumer-topic-performancetest",
+  "backoffFactor": 1.15,
+  "backoffSeconds": 1,
+  "cmd": "kafka-consumer-perf-test --topic performancetest --messages 15000000 --threads 1 --broker-list=broker.kafka.l4lb.thisdcos.directory:9092 && sleep 60",
+  "constraints": [
+    [
+      "hostname",
+      "UNIQUE"
+    ]
+  ],
+  "container": {
+    "type": "MESOS",
+    "volumes": [],
+    "docker": {
+      "image": "confluentinc/cp-kafka",
+      "forcePullImage": false,
+      "parameters": []
+    }
+  },
+  "cpus": 4,
+  "disk": 0,
+  "instances": 1,
+  "maxLaunchDelaySeconds": 3600,
+  "mem": 13000,
+  "gpus": 0,
+  "networks": [
+    {
+      "mode": "host"
+    }
+  ],
+  "portDefinitions": [],
+  "requirePorts": false,
+  "upgradeStrategy": {
+    "maximumOverCapacity": 1,
+    "minimumHealthCapacity": 0
+  },
+  "killSelection": "YOUNGEST_FIRST",
+  "unreachableStrategy": {
+    "inactiveAfterSeconds": 0,
+    "expungeAfterSeconds": 0
+  },
+  "healthChecks": [],
+  "fetch": []
+}

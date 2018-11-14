@@ -1,0 +1,14 @@
+{
+  "service": {
+    "name": "kafka"
+  },
+    "brokers": {
+    "cpus": 3,
+    "mem": 12000,
+    "heap": {
+      "size": 512
+    },
+        "disk": 25000,
+    "count": 3
+  }
+}
