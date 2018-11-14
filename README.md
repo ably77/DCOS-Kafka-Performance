@@ -15,6 +15,7 @@ See [Optimizing Your Apache Kafka Deployment](https://www.confluent.io/white-pap
         - Requires 6 nodes minimum (1x master, 4x Kafka agents, 1x Producer Agent)
         - Optional: Test options scale up to 36 nodes maximum (1x master, 10x Kafka Agents, 25 Producer Agents)
 
+## Confluent Kafka
 
 ### [Load Testing Confluent Kafka Quickstart](https://github.com/ably77/DCOS-Kafka-Performance/blob/master/Quickstart-cpkafka.md)
 - A quick guide that will teach the basics of performance testing tools available in the Kafka distribution.
