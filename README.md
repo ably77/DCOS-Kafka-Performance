@@ -26,6 +26,18 @@ See [Optimizing Your Apache Kafka Deployment](https://www.confluent.io/white-pap
 	- Requires 6 nodes minimum (1x master, 4x Kafka agents, 1x Producer Agent)
 	- Optional: Test options scale up to 36 nodes maximum (1x master, 10x Kafka Agents, 25 Producer Agents)
 
+[1.12] Monitoring Kafka with Prometheus/Grafana
+
+DC/OS 1.12 now ships with Prometheus + Telegraf for improved metrics capabilities. Leveraging Grafana, you can test out building dashboards and monitoring your DC/OS cluster with the guide below
+
+### [Demo Prometheus Framework on DC/OS 1.12](https://github.com/ably77/dcos-se/tree/master/Prometheus/1.12_prometheus)
+
+There are several example dashboards, but below are screenshots of the Kafka dashboard that is available:
+
+![](https://github.com/ably77/dcos-se/blob/master/Prometheus/resources/kafka-dashboard1.png)
+![](https://github.com/ably77/dcos-se/blob/master/Prometheus/resources/kafka-dashboard2.png)
+
+
 ## Results:
 
 Highest Single Producer Throughput:
