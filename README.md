@@ -30,7 +30,7 @@ See [Optimizing Your Apache Kafka Deployment](https://www.confluent.io/white-pap
 
 DC/OS 1.12 now ships with Prometheus + Telegraf for improved metrics capabilities. Leveraging Grafana, you can test out building dashboards and monitoring your DC/OS cluster with the guide below
 
-### [Demo Prometheus Framework on DC/OS 1.12](https://github.com/ably77/dcos-se/tree/master/Prometheus/1.12_prometheus)
+### [Tutorial: Prometheus Framework on DC/OS 1.12](https://github.com/ably77/dcos-se/tree/master/Prometheus/1.12_prometheus)
 
 There are several example dashboards, but below are screenshots of the Kafka dashboard that is available:
 
