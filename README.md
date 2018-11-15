@@ -34,6 +34,8 @@ DC/OS 1.12 now ships with Prometheus + Telegraf for improved metrics capabilitie
 
 There are several example dashboards, but below are screenshots of the Kafka dashboard that is available:
 
+**Note:** You do not need to configure the Mesos Telegraf plugin in order to have the Kafka dashboard working
+
 ![](https://github.com/ably77/dcos-se/blob/master/Prometheus/resources/kafka-dashboard1.png)
 ![](https://github.com/ably77/dcos-se/blob/master/Prometheus/resources/kafka-dashboard2.png)
 
