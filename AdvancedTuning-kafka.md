@@ -557,6 +557,7 @@ dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Perfor
 
 Navigate to the Grafana UI --> 1.12 DC/OS Kafka Dashboard to view performance test results:
 
+![](https://github.com/ably77/DCOS-Kafka-Performance/blob/master/resources/3producer.png)
 
 
 Remove the Service:
