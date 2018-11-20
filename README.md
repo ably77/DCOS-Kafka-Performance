@@ -12,8 +12,8 @@ See [Optimizing Your Apache Kafka Deployment](https://www.confluent.io/white-pap
 
 ### [Advanced Load Testing Apache Kafka with Prometheus+Grafana Monitoring](https://github.com/ably77/DCOS-Kafka-Performance/blob/master/AdvancedTuning-kafka.md)
 - A deep-dive guide to performance testing and scaling your Kafka cluster on DC/OS. More focused on high throughput, but advice is offered for balancing goals of t$
-        - Requires 6 nodes minimum (1x master, 4x Kafka agents, 1x Producer Agent)
-        - Optional: Test options scale up to 36 nodes maximum (1x master, 10x Kafka Agents, 25 Producer Agents)
+  - Requires 6 nodes minimum (1x master, 4x Kafka agents, 1x Producer Agent)
+	- Optional: Test options scale up to 15 Producers maximum (1x master, 5x Kafka Agents, 15 Producer Agents)
 
 ## Confluent Kafka
 
@@ -24,7 +24,7 @@ See [Optimizing Your Apache Kafka Deployment](https://www.confluent.io/white-pap
 ### [Advanced Load Testing Confluent Kafka with Prometheus+Grafana Monitoring](https://github.com/ably77/DCOS-Kafka-Performance/blob/master/AdvancedTuning-cpkafka.md)
 - A deep-dive guide to performance testing and scaling your Kafka cluster on DC/OS. More focused on high throughput, but advice is offered for balancing goals of throughput, latency, availability, and durability
 	- Requires 6 nodes minimum (1x master, 4x Kafka agents, 1x Producer Agent)
-	- Optional: Test options scale up to 36 nodes maximum (1x master, 10x Kafka Agents, 25 Producer Agents)
+	- Optional: Test options scale up to 15 Producers maximum (1x master, 5x Kafka Agents, 15 Producer Agents)
 
 ## WIP:
 
