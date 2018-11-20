@@ -134,7 +134,7 @@ Here is the example application definition for our performance test service that
   "cpus": 0.5,
   "disk": 0,
   "instances": 1,
-  "maxLaunchDelaySeconds": 15,
+  "maxLaunchDelaySeconds": 0,
   "mem": 2000,
   "gpus": 0,
   "networks": [
@@ -365,7 +365,6 @@ deploy (serial strategy) (COMPLETE)
    ├─ kafka-2:[broker] (COMPLETE)
    ├─ kafka-3:[broker] (COMPLETE)
    ├─ kafka-4:[broker] (COMPLETE)
-   └─ kafka-5:[broker] (COMPLETE)
 ```
 
 ## Set up Proper Monitoring
@@ -514,7 +513,7 @@ Here is the example application definition for our performance test service that
   "cpus": 0.5,
   "disk": 0,
   "instances": 3,
-  "maxLaunchDelaySeconds": 15,
+  "maxLaunchDelaySeconds": 0,
   "mem": 2000,
   "gpus": 0,
   "networks": [

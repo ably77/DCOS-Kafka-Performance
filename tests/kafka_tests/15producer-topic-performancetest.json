@@ -21,7 +21,7 @@
   "cpus": 4,
   "disk": 0,
   "instances": 15,
-  "maxLaunchDelaySeconds": 3600,
+  "maxLaunchDelaySeconds": 0,
   "mem": 13000,
   "gpus": 0,
   "networks": [

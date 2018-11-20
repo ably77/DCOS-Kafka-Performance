@@ -2,13 +2,7 @@
   "id": "/1producer-higher-topic-performancetest",
   "backoffFactor": 1.15,
   "backoffSeconds": 1,
-  "cmd": "kafka-producer-perf-test --topic performancetest --num-records 10000000 --record-size 250 --throughput 1000000 --producer-props acks=1 buffer.memory=67108864 compression.type=none batch.size=8196 linger.ms=0 retries=0 bootstrap.servers=broker.confluent-kafka.l4lb.thisdcos.directory:9092 && sleep 60",
-  "constraints": [
-    [
-      "hostname",
-      "UNIQUE"
-    ]
-  ],
+  "cmd": "kafka-producer-perf-test --topic performancetest --num-records 10000000 --record-size 250 --throughput 1000000 --producer-props acks=1 buffer.memory=67108864 compression.type=lz4 batch.size=200000 linger.ms=100 retries=0 bootstrap.servers=broker.confluent-kafka.l4lb.thisdcos.directory:9092",
   "container": {
     "type": "MESOS",
     "volumes": [],
@@ -18,11 +12,11 @@
       "parameters": []
     }
   },
-  "cpus": 4,
+  "cpus": 0.5,
   "disk": 0,
   "instances": 1,
-  "maxLaunchDelaySeconds": 3600,
-  "mem": 13000,
+  "maxLaunchDelaySeconds": 0,
+  "mem": 2000,
   "gpus": 0,
   "networks": [
     {
@@ -41,5 +35,6 @@
     "expungeAfterSeconds": 0
   },
   "healthChecks": [],
-  "fetch": []
+  "fetch": [],
+  "constraints": []
 }

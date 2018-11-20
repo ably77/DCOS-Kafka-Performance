@@ -2,7 +2,7 @@
   "id": "/15producer-topic-performancetest",
   "backoffFactor": 1.15,
   "backoffSeconds": 1,
-  "cmd": "kafka-producer-perf-test --topic performancetest --num-records 10000000 --record-size 250 --throughput 1000000 --producer-props acks=1 buffer.memory=67108864 compression.type=none batch.size=8196 linger.ms=0 retries=0 bootstrap.servers=broker.confluent-kafka.l4lb.thisdcos.directory:9092 && sleep 60",
+  "cmd": "kafka-producer-perf-test --topic performancetest --num-records 10000000 --record-size 250 --throughput 1000000 --producer-props acks=1 buffer.memory=67108864 compression.type=none batch.size=8196 linger.ms=0 retries=0 bootstrap.servers=broker.confluent-kafka.l4lb.thisdcos.directory:9092",
   "constraints": [
     [
       "hostname",
@@ -21,7 +21,7 @@
   "cpus": 4,
   "disk": 0,
   "instances": 15,
-  "maxLaunchDelaySeconds": 3600,
+  "maxLaunchDelaySeconds": 0,
   "mem": 13000,
   "gpus": 0,
   "networks": [

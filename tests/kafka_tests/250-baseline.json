@@ -15,7 +15,7 @@
   "cpus": 0.5,
   "disk": 0,
   "instances": 1,
-  "maxLaunchDelaySeconds": 15,
+  "maxLaunchDelaySeconds": 0,
   "mem": 2000,
   "gpus": 0,
   "networks": [
