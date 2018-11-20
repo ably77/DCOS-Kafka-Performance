@@ -1,14 +1,9 @@
 {
-  "id": "/1consumer-higher-topic-performancetest",
+  "id": "/1consumer-higher-performancetest",
   "backoffFactor": 1.15,
   "backoffSeconds": 1,
-  "cmd": "kafka-consumer-perf-test --topic performancetest --messages 15000000 --threads 1 fetch.min.bytes=1000000 --broker-list=broker.kafka.l4lb.thisdcos.directory:9092 && sleep 60",
-  "constraints": [
-    [
-      "hostname",
-      "UNIQUE"
-    ]
-  ],
+  "cmd": "kafka-consumer-perf-test --topic performancetest --messages 10000000 --threads 1 fetch.min.bytes=1000000 --broker-list=broker.kafka.l4lb.thisdcos.directory:9092",
+  "constraints": [],
   "container": {
     "type": "MESOS",
     "volumes": [],
@@ -18,11 +13,10 @@
       "parameters": []
     }
   },
-  "cpus": 4,
+  "cpus": 0.5,
   "disk": 0,
   "instances": 1,
-  "maxLaunchDelaySeconds": 3600,
-  "mem": 13000,
+  "maxLaunchDelaySeconds": 15,
   "gpus": 0,
   "networks": [
     {
@@ -41,5 +35,6 @@
     "expungeAfterSeconds": 0
   },
   "healthChecks": [],
-  "fetch": []
+  "fetch": [],
+  "mem": 2000
 }

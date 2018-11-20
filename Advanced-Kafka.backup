@@ -9,6 +9,7 @@ To start, the specs of my cluster are as stated below:
 - DC/OS CLI Installed and authenticated to your Local Machine
 
 - AWS Instance Type: m3.xlarge - 4vCPU, 15GB RAM [See here for more recommended instance types by Confluent](https://www.confluent.io/blog/design-and-deployment-considerations-for-deploying-apache-kafka-on-aws/)
+    - EBS Backed Storage - 60 GB
 
 ### Default Kafka Framework Parameters
 Note that the default Kafka package has these specifications for brokers:
@@ -18,7 +19,7 @@ Note that the default Kafka package has these specifications for brokers:
 - 5000 MB Disk
 - 512 MB JVM Heap Size
 
-**For our Advanced Guide we will use a larger Kafka cluster size to observe performance improvements:**
+For our Advanced Guide we will use a larger Kafka cluster size to observe performance improvements:
 
 ### Our Advanced Kafka Framework Parameters
 - 3x Brokers
@@ -107,13 +108,8 @@ In this test we are using the following parameters:
 - linger.ms: 0 (default)
     - linger.ms set at 0 means that records will immediately be sent even if there is additional unused space in the buffer.
     - If the measure of performance you really care about is throughput, you can configure the linger.ms parameter to have the producer wait longer before sending. This allows the producer to wait for the batch to reach the configured batch.size
-- Compression Type: none (default)
+- Compression Type: none
         - Can set to options: none, lz4, gzip, snappy
-
-Description of Producer Service:
-    - 1x Instance to start
-    - 0.5 CPU
-    - 2GB MEM
 
 Here is the example application definition for our performance test service that we will call `250-baseline-kafka.json`
 ```
@@ -121,7 +117,13 @@ Here is the example application definition for our performance test service that
   "id": "/250-baseline",
   "backoffFactor": 1.15,
   "backoffSeconds": 1,
-  "cmd": "kafka-producer-perf-test --topic performancetest --num-records 10000000 --record-size 250 --throughput 1000000 --producer-props acks=1 buffer.memory=67108864 compression.type=none batch.size=8196 linger.ms=0 retries=0 bootstrap.servers=broker.kafka.l4lb.thisdcos.directory:9092",
+  "cmd": "kafka-producer-perf-test --topic performancetest --num-records 10000000 --record-size 250 --throughput 1000000 --producer-props acks=1 buffer.memory=67108864 compression.type=none batch.size=8196 linger.ms=0 retries=0 bootstrap.servers=broker.kafka.l4lb.thisdcos.directory:9092 && sleep 60",
+  "constraints": [
+    [
+      "hostname",
+      "UNIQUE"
+    ]
+  ],
   "container": {
     "type": "MESOS",
     "volumes": [],
@@ -131,11 +133,11 @@ Here is the example application definition for our performance test service that
       "parameters": []
     }
   },
-  "cpus": 0.5,
+  "cpus": 4,
   "disk": 0,
   "instances": 1,
-  "maxLaunchDelaySeconds": 15,
-  "mem": 2000,
+  "maxLaunchDelaySeconds": 3600,
+  "mem": 13000,
   "gpus": 0,
   "networks": [
     {
@@ -154,14 +156,20 @@ Here is the example application definition for our performance test service that
     "expungeAfterSeconds": 0
   },
   "healthChecks": [],
-  "fetch": [],
-  "constraints": []
+  "fetch": []
 }
 ```
 
-Note: Note that running multiple producers from the same node is less effective in this situation because our bottleneck may start to come from other places, such as the NIC. Keeping the producers on seperate nodes is more ideal for our current testing case as we can then remove the Producer as the throughput bottleneck.
+Description of Producer Service:
+- 1x Instance to start
+- 4 CPU
+- 13GB MEM
+- Constraint: HOSTNAME / UNIQUE
+- Sleep 120 seconds and restart
 
-Launch the producer service:
+Note: Note that running multiple producers from the same node is less effective in this situation because our bottleneck may start to come from other places, such as the NIC. Keeping the producers on seperate nodes is more ideal for our current testing case as we can then remove the Producer as the throughput bottleneck. In our case when we built our cluster we deployed an extra agent node, which the Producer will utilize.
+
+Launch the marathon service:
 ```
 dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/kafka_tests/250-baseline.json
 ```
@@ -169,20 +177,13 @@ dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Perfor
 Navigate to the DC/OS UI --> Services --> 250-baseline --> logs --> Output (stdout) to view performance test results:
 ```
 (AT BEGINNING OF FILE)
-131328 records sent, 26265.6 records/sec (6.26 MB/sec), 551.6 ms avg latency, 1191.0 max latency.
-344937 records sent, 68987.4 records/sec (16.45 MB/sec), 998.5 ms avg latency, 1790.0 max latency.
-254200 records sent, 49960.7 records/sec (11.91 MB/sec), 1634.0 ms avg latency, 2393.0 max latency.
-415975 records sent, 83161.7 records/sec (19.83 MB/sec), 543.2 ms avg latency, 1696.0 max latency.
-548232 records sent, 109646.4 records/sec (26.14 MB/sec), 124.0 ms avg latency, 294.0 max latency.
-977810 records sent, 195562.0 records/sec (46.63 MB/sec), 35.2 ms avg latency, 486.0 max latency.
-1140992 records sent, 228198.4 records/sec (54.41 MB/sec), 47.7 ms avg latency, 374.0 max latency.
-1157386 records sent, 231477.2 records/sec (55.19 MB/sec), 118.6 ms avg latency, 593.0 max latency.
-1120032 records sent, 224006.4 records/sec (53.41 MB/sec), 40.6 ms avg latency, 288.0 max latency.
-1193148 records sent, 238629.6 records/sec (56.89 MB/sec), 30.3 ms avg latency, 176.0 max latency.
-1116922 records sent, 223384.4 records/sec (53.26 MB/sec), 159.2 ms avg latency, 683.0 max latency.
-1114785 records sent, 222957.0 records/sec (53.16 MB/sec), 70.9 ms avg latency, 288.0 max latency.
-10000000 records sent, 160986.525428 records/sec (38.38 MB/sec), 169.89 ms avg latency, 2393.00 ms max latency, 90 ms 50th, 907 ms 95th, 1591 ms 99th, 1905 ms 99.9th.
+3094865 records sent, 618973.0 records/sec (147.57 MB/sec), 36.5 ms avg latency, 311.0 max latency.
+4065176 records sent, 813035.2 records/sec (193.84 MB/sec), 45.6 ms avg latency, 369.0 max latency.
+10000000 records sent, 749568.997826 records/sec (178.71 MB/sec), 45.86 ms avg latency, 369.00 ms max latency, 4 ms 50th, 129 ms 95th, 145 ms 99th, 152 ms 99.9th.
 ```
+
+#### Initial Thoughts:
+Here we can see that increasing the parameters of the Kafka framework we are able to increase the throughput performance significantly from the default deploy
 
 Remove the service:
 ```
@@ -192,14 +193,9 @@ dcos marathon app remove 250-baseline
 
 ### Kafka Consumer Performance Testing
 
-Description of Producer Service:
-- 1x Instance to start
-- 0.5 CPU
-- 2GB MEM
-
 In this test we are using the following parameters:
 - Topic: performancetest
-- Number of Messages to Consume: 10M
+- Number of Messages to Consume: 1.5M
 - Threads: 1
 
 Deploy the Service:
@@ -210,22 +206,98 @@ dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Perfor
 Navigate to the DC/OS UI --> Services --> 1consumer-topic-performancetest --> logs --> Output (stdout) to view performance test results. Example Output (Edited for readability):
 ```
 (AT BEGINNING OF FILE)
-start.time - 2018-11-20 18:29:16:590
-end.time - 2018-11-20 18:29:44:568
-data.consumed.in.MB - 2384.1858
-MB.sec - 85.2164
-data.consumed.in.nMsg - 10000000
-nMsg.sec - 357423.6900
-rebalance.time.ms - 3050
-fetch.time.ms - 24928
-fetch.MB.sec - 95.6429
-fetch.nMsg.sec - 401155.3273
+start.time - 2018-11-14 19:20:16:527
+end.time - 2018-11-14 19:20:55:536
+data.consumed.in.MB - 3576.3934
+MB.sec - 312.3213
+data.consumed.in.nMsg - 15000474
+nMsg.sec - 1309970.6576
+rebalance.time.ms - 3015
+fetch.time.ms - 8436
+fetch.MB.sec - 423.9440
+fetch.nMsg.sec - 1778150.0711
 ```
 
 Remove the Service:
 ```
 dcos marathon app remove 1consumer-topic-performancetest
 ```
+
+## Step 4: Understand baseline performance
+
+My variable parameter was `record-size` in bytes which I averaged across 5 runs:
+
+**Record Size: 250 bytes**:
+
+Run the Service:
+```
+dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/kafka_tests/250-baseline.json
+```
+
+Example Output over 5 runs:
+```
+10000000 records sent, 452324.950244 records/sec (107.84 MB/sec), 94.85 ms avg latency, 776.00 ms max latency, 86 ms 50th, 330 ms 95th, 436 ms 99th, 533 ms 99.9th.
+10000000 records sent, 457435.615937 records/sec (109.06 MB/sec), 102.11 ms avg latency, 660.00 ms max latency, 39 ms 50th, 485 ms 95th, 581 ms 99th, 647 ms 99.9th.
+10000000 records sent, 450409.872984 records/sec (107.39 MB/sec), 49.25 ms avg latency, 393.00 ms max latency, 7 ms 50th, 196 ms 95th, 289 ms 99th, 318 ms 99.9th.
+10000000 records sent, 416770.859382 records/sec (99.37 MB/sec), 141.61 ms avg latency, 2603.00 ms max latency, 20 ms 50th, 218 ms 95th, 398 ms 99th, 420 ms 99.9th.
+10000000 records sent, 452652.543907 records/sec (107.92 MB/sec), 134.19 ms avg latency, 818.00 ms max latency, 74 ms 50th, 642 ms 95th, 692 ms 99th, 703 ms 99.9th.
+
+Average: 445918.77 records/sec, 106.32 MB/sec, 104.4 ms avg latency, 1050 avg ms max latency
+```
+
+Remove the Service:
+```
+dcos marathon app remove 250-baseline
+```
+
+**Record Size: 500 bytes**:
+
+Run the Service:
+```
+dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/kafka_tests/500-baseline.json
+```
+
+Example output over 5 runs:
+```
+10000000 records sent, 230973.553528 records/sec (110.14 MB/sec), 505.08 ms avg latency, 1318.00 ms max latency, 185 ms 50th, 526 ms 95th, 686 ms 99th, 760 ms 99.9th.
+10000000 records sent, 229547.332660 records/sec (109.46 MB/sec), 508.49 ms avg latency, 1024.00 ms max latency, 265 ms 50th, 728 ms 95th, 881 ms 99th, 954 ms 99.9th.
+10000000 records sent, 231873.304426 records/sec (110.57 MB/sec), 502.54 ms avg latency, 2119.00 ms max latency, 292 ms 50th, 902 ms 95th, 997 ms 99th, 1009 ms 99.9th.
+10000000 records sent, 232018.561485 records/sec (110.64 MB/sec), 505.30 ms avg latency, 1601.00 ms max latency, 1029 ms 50th, 1413 ms 95th, 1549 ms 99th, 1579 ms 99.9th.
+10000000 records sent, 236748.029073 records/sec (112.89 MB/sec), 493.91 ms avg latency, 1749.00 ms max latency, 177 ms 50th, 428 ms 95th, 475 ms 99th, 494 ms 99.9th.
+
+Average: 232232.16 records/sec, 110.74 ms avg latency, 1562.2 ms avg max latency
+```
+
+Remove the Service:
+```
+dcos marathon app remove 500-baseline
+```
+
+**Record Size: 1 kB**
+
+Run the Service:
+```
+dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/kafka_tests/1000-baseline.json
+```
+
+Example output over 5 runs:
+```
+10000000 records sent, 107101.928906 records/sec (102.14 MB/sec), 598.85 ms avg latency, 2896.00 ms max latency, 3 ms 50th, 585 ms 95th, 689 ms 99th, 710 ms 99.9th.
+10000000 records sent, 63005.223133 records/sec (60.09 MB/sec), 1030.05 ms avg latency, 22907.00 ms max latency, 401 ms 50th, 1785 ms 95th, 22628 ms 99th, 22869 ms 99.9th.
+10000000 records sent, 113606.670984 records/sec (108.34 MB/sec), 564.88 ms avg latency, 2677.00 ms max latency, 8 ms 50th, 922 ms 95th, 2120 ms 99th, 2662 ms 99.9th.
+10000000 records sent, 63212.723457 records/sec (60.28 MB/sec), 942.20 ms avg latency, 39612.00 ms max latency, 811 ms 50th, 1754 ms 95th, 30059 ms 99th, 31870 ms 99.9th.
+10000000 records sent, 109065.526568 records/sec (104.01 MB/sec), 587.74 ms avg latency, 5129.00 ms max latency, 1105 ms 50th, 1749 ms 95th, 1881 ms 99th, 1919 ms 99.9th.
+
+Average: 91198.41 records/sec, 86.97 ms avg latency, 14644 ms avg max latency
+```
+
+Remove the Service:
+```
+dcos marathon app remove 1000-baseline
+```
+
+### Initial Thoughts:
+With a single isolated producer, you can see that our cluster can handle high throughput, but latency performance is clearly an issue. We will modify the tests to try and find an ideal high throughput and latency balance.
 
 ## Goal: Increase Throughput
 
@@ -245,7 +317,6 @@ For increasing throughput of Consumers, Confluent recommends:
 
 #### Lets try the lower end range parameters of the recommendations above:
 - number of records - 10M
-- Record Size: 250 bytes (representative of a typical log line)
 - batch.size - 100000
 - linger.ms - 10
 - compression.type - lz4
@@ -259,7 +330,7 @@ dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Perfor
 
 Example Output in the logs:
 ```
-10000000 records sent, 342935.528121 records/sec (81.76 MB/sec), 34.17 ms avg latency, 410.00 ms max latency, 10 ms 50th, 90 ms 95th, 99 ms 99th, 198 ms 99.9th.
+10000000 records sent, 717360.114778 records/sec (171.03 MB/sec), 8.83 ms avg latency, 226.00 ms max latency, 8 ms 50th, 13 ms 95th, 17 ms 99th, 25 ms 99.9th.
 ```
 
 Remove the Service:
@@ -282,7 +353,7 @@ dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Perfor
 
 Example Output in the logs:
 ```
-10000000 records sent, 233579.370270 records/sec (55.69 MB/sec), 106.96 ms avg latency, 693.00 ms max latency, 100 ms 50th, 194 ms 95th, 204 ms 99th, 292 ms 99.9th.
+10000000 records sent, 610761.619740 records/sec (145.62 MB/sec), 70.41 ms avg latency, 336.00 ms max latency, 77 ms 50th, 129 ms 95th, 142 ms 99th, 160 ms 99.9th.
 ```
 
 Remove the service:
@@ -302,16 +373,16 @@ dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Perfor
 
 Output:
 ```
-start.time - 2018-11-20 18:49:06:835
-end.time - 2018-11-20 18:49:34:059
-data.consumed.in.MB - 2384.1858
-MB.sec - 87.5766
-data.consumed.in.nMsg - 10000000
-nMsg.sec - 367322.9503
+start.time - 2018-08-13 20:08:18:902
+end.time - 2018-08-13 20:08:42:726
+data.consumed.in.MB - 5090.1122
+MB.sec - 213.6548
+data.consumed.in.nMsg - 15000098
+nMsg.sec - 629621.3062
 rebalance.time.ms - 3021
-fetch.time.ms - 24203
-fetch.MB.sec - 98.5079
-fetch.nMsg.sec - 413171.9208
+fetch.time.ms - 20803
+fetch.MB.sec - 244.6816
+fetch.nMsg.sec - 721054.5594
 ```
 
 Remove the Service:
@@ -322,15 +393,15 @@ dcos marathon app remove 1consumer-higher-topic-performancetest
 ### Conclusions
 
 #### Producers
-Lower Range - 113% increase in Throughput
-Higher Range - 45% increase in Throughput
+Lower Range - 60% increase in Throughput
+Higher Range - 37% increase in Throughput
 
-By tuning for throughput and increasing the batch.size, linger.ms, and compression.type parameters we can see a significant increase in throughput performance as well as latency performance of our Kafka cluster. For a 250 byte record it seems as though the lower end ranges are more ideal, resulting in >300K records/sec. The upper end also saw improvements in performance, but may be more ideal for a situation where the record size is much larger.
+By tuning for throughput and increasing the batch.size, linger.ms, and compression.type parameters we can see a significant increase in throughput performance as well as latency performance of our Kafka cluster. For a 250 byte record it seems as though the lower end ranges are more ideal, resulting in >700K records/sec at a low 8.83 ms avg latency. The upper end also saw improvements in performance, but may be more ideal for a situation where the record size is much larger.
 
 For the rest of the testing, we will utilize the Lower Range parameters, but it would be advised to do more A/B testing within the range to optimize for your specific record-size
 
 #### Consumers
-Increasing fetch.min.bytes from 1 --> 1000000 resulted in a modest ~3% increase in performance of our Consumer.
+Increasing fetch.min.bytes from 1 --> 1000000 resulted in a 43% increase in performance of our Consumer from 440K records/sec to 630K records/sec
 
 ## Horizontal Scale
 Now that we have reached a "peak" in our current configuration (3CPU, 12GB MEM, 25GB DISK) lets horizontally scale our cluster to see what performance benefits we can gain. Begin so by adding some nodes to your DC/OS cluster. We started this guide with 5, and for the rest of this guide we will continue to scale test using up to 35 private agents
@@ -340,15 +411,16 @@ Now that we have reached a "peak" in our current configuration (3CPU, 12GB MEM, 
 - 12 Private Agents
 - DC/OS CLI Installed and authenticated to your Local Machine
 - AWS Instance Type: m3.xlarge - 4vCPU, 15GB RAM See here for more recommended instance types by Confluent
+    - EBS Backed Storage - 60 GB
 
 ### Kafka Cluster Parameters
-- 5x Brokers
+- 6x Brokers
 - 3 CPU
 - 12GB MEM
 - 25 GB Disk
 - 512 MB JVM Heap Size
 
-As you can see, nothing has changed above from our prior configuration except for scaling from 3 to 5 Kafka brokers. You can do so by passing an update command with an updated options.json file, or through the UI change Kafka broker count to 5.
+As you can see, nothing has changed above from our prior configuration except for scaling from 3 to 6 Kafka brokers. You can do so by passing an update command with an updated options.json file, or through the UI change Kafka broker count to 6.
 
 To validate that our deployment is correct:
 ```
@@ -368,112 +440,8 @@ deploy (serial strategy) (COMPLETE)
    └─ kafka-5:[broker] (COMPLETE)
 ```
 
-## Set up Proper Monitoring
-DC/OS 1.12 now ships with Prometheus + Telegraf for improved metrics capabilities. Leveraging Grafana, you can test out building dashboards and monitoring your DC/OS cluster with the guide below
-
-![](https://github.com/ably77/dcos-se/blob/master/Prometheus/resources/kafka-dashboard1.png)
-![](https://github.com/ably77/dcos-se/blob/master/Prometheus/resources/kafka-dashboard2.png)
-
-
-### Install Prometheus and Grafana
-
-Save Prometheus options as `prometheus-options.json`:
-```
-{
-  "service": {
-    "name": "/monitoring/prometheus"
-  }
-}
-```
-
-Install Prometheus Framework:
-```
-dcos package install prometheus --package-version=0.1.1-2.3.2 --options=prometheus-options.json --yes
-```
-
-Save Grafana options as `grafana-options.json`:
-```
-{
-  "service": {
-    "name": "/monitoring/grafana"
-  }
-}
-```
-
-Install Grafana Service:
-```
-dcos package install grafana --package-version=5.5.0-5.1.3 --options=grafana-options.json --yes
-```
-
-Install Marathon-LB:
-```
-dcos package install marathon-lb --package-version=1.12.3 --yes
-```
-
-Install Prometheus MLB Proxy:
-```
-dcos marathon app add https://raw.githubusercontent.com/ably77/dcos-se/master/Prometheus/1.12_prometheus/prometheus-mlb-proxy.json
-```
-
-Run the `findpublic_ips.sh` script:
-```
-./findpublic_ips.sh
-```
-
-Output should similar to below:
-```
-Public agent node found! public IP is:
-52.27.213.225
-172.12.3.121
-```
-
-### Setting Up Grafana
-Navigate to the Marathon-LB Public Agent serving the Grafana UI using the credentials `admin/admin`:
-```
-http://<public-agent-ip>:9094
-```
-
-This takes you to the Grafana console
-![](https://github.com/ably77/dcos-se/blob/master/Prometheus/resources/grafana1.png)
-
-Select `Add a Data Source` and add Prometheus as a data source
-
-![](https://github.com/ably77/dcos-se/blob/master/Prometheus/resources/grafana2.png)
-
-Input the fields:
-
-`Name`: Prometheus
-
-`Type`: Prometheus
-
-In this demo, because the Prometheus service is nested in the `/monitoring` group folder in DC/OS, the VIP hostname syntax for this demo is shown below:
-
-`HTTP URL`: `http://prometheus-0-server.monitoringprometheus.autoip.dcos.thisdcos.directory:1025`
-
-**Note:** your data source will not register without http:// in front of the URL
-
-![](https://github.com/ably77/dcos-se/blob/master/Prometheus/resources/grafana3.png)
-
-Select Save and Test. Now you are ready to use Prometheus as a data source in Grafana.
-
-### Importing Dashboards
-Once you have correctly set up your data source in the steps above you can import the dashboard.json files
-
-Select the + button --> import:
-![](https://github.com/ably77/dcos-se/blob/master/Prometheus/resources/import2.png)
-
-Paste the Grafana.com dashboard url or id
-![](https://github.com/ably77/dcos-se/blob/master/Prometheus/resources/import3.png)
-
-Reference Dashboard IDs:
-- 1.12 DC/OS Kafka Dashboard - ID: 9018 - URL: https://grafana.com/dashboards/9018
-
-Edit your Dashboard Name and Select Data Source and Import:
-![](https://github.com/ably77/dcos-se/blob/master/Prometheus/resources/import3.png)
-
-
 ### Run the Kafka Performance Test
-Now lets run the same single producer Kafka performance test optimized for throughput as before on our 5 broker node Kafka cluster
+Now lets run the same single producer Kafka performance test optimized for throughput as before on our 6 broker node Kafka cluster
 
 Deploy the Service:
 ```
@@ -482,7 +450,7 @@ dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Perfor
 
 Example Output in Logs:
 ```
-10000000 records sent, 315437.511829 records/sec (75.21 MB/sec), 36.03 ms avg latency, 500.00 ms max latency, 13 ms 50th, 94 ms 95th, 102 ms 99th, 190 ms 99.9th.
+10000000 records sent, 780518.264127 records/sec (186.09 MB/sec), 8.70 ms avg latency, 214.00 ms max latency, 8 ms 50th, 13 ms 95th, 19 ms 99th, 28 ms 99.9th.
 ```
 
 Remove the Service:
@@ -490,7 +458,7 @@ Remove the Service:
 dcos marathon app remove 1producer-lower-topic-performancetest
 ```
 
-As we can see from above, our throughput for a single producer hasnt increased/decreased too much, however in order to gain the benefits of horizontal scaling we will also throw multiple producers at the same topic to see how much total throughput we can get out of the Kafka deployment.
+As we can see from above, our throughput for a single producer hasnt increased too much, however in order to gain the benefits of horizontal scaling we will also throw multiple producers at the same topic to see how much total throughput we can get out of the Kafka deployment.
 
 ## Running Multiple Producers in Parallel
 In order to attack this throughput problem with multiple producers in parallel, we will run the performance test as a service in DC/OS and scale it  to run multiple producers. Note that running multiple producers from the same node is less effective in this situation because our bottleneck may start to come from other places, such as the NIC. Keeping the producers on seperate nodes is more ideal for our current testing case as we can then remove the Producer as the throughput bottleneck.
@@ -501,7 +469,13 @@ Here is the example application definition for our performance test service that
   "id": "/3producer-topic-performancetest",
   "backoffFactor": 1.15,
   "backoffSeconds": 1,
-  "cmd": "kafka-producer-perf-test --topic performancetest --num-records 10000000 --record-size 250 --throughput 1000000 --producer-props acks=1 buffer.memory=67108864 compression.type=lz4 batch.size=100000 linger.ms=10 retries=0 bootstrap.servers=broker.kafka.l4lb.thisdcos.directory:9092",
+  "cmd": "kafka-producer-perf-test --topic performancetest --num-records 10000000 --record-size 250 --throughput 1000000 --producer-props acks=1 buffer.memory=67108864 compression.type=lz4 batch.size=100000 linger.ms=10 retries=0 bootstrap.servers=kafka-0-broker.kafka.autoip.dcos.thisdcos.directory:1025,kafka-1-broker.kafka.autoip.dcos.thisdcos.directory:1025,kafka-2-broker.kafka.autoip.dcos.thisdcos.directory:1025 && sleep 120",
+  "constraints": [
+    [
+      "hostname",
+      "UNIQUE"
+    ]
+  ],
   "container": {
     "type": "MESOS",
     "volumes": [],
@@ -511,11 +485,11 @@ Here is the example application definition for our performance test service that
       "parameters": []
     }
   },
-  "cpus": 0.5,
+  "cpus": 4,
   "disk": 0,
   "instances": 3,
-  "maxLaunchDelaySeconds": 15,
-  "mem": 2000,
+  "maxLaunchDelaySeconds": 3600,
+  "mem": 13000,
   "gpus": 0,
   "networks": [
     {
@@ -534,37 +508,53 @@ Here is the example application definition for our performance test service that
     "expungeAfterSeconds": 0
   },
   "healthChecks": [],
-  "fetch": [],
-  "constraints": [
-    [
-      "hostname",
-      "UNIQUE"
-    ]
-  ]
+  "fetch": []
 }
 ```
 
 Description of Producer Service:
 - 3x Instances to start
-- 0.5 CPU
-- 2GB MEM
+- 4 CPU
+- 13GB MEM
 - Constraint: HOSTNAME / UNIQUE
+- Sleep 120 seconds and restart
 
 Launch the marathon service:
 ```
 dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/kafka_tests/3producer-topic-performancetest.json
 ```
 
-Navigate to the Grafana UI --> 1.12 DC/OS Kafka Dashboard to view performance test results:
+Navigate to the UI --> Services --> confluent-producer --> logs --> Output (stdout) to view performance test results:
+```
+(AT BEGINNING OF FILE)
+Marked '/' as rslave
+Prepared mount '{"flags":20480,"source":"\/var\/lib\/mesos\/slave\/slaves\/e77195fd-0c64-4b78-8d51-1223609f3b73-S5\/frameworks\/e77195fd-0c64-4b78-8d51-1223609f3b73-0001\/executors\/3producer-topic-performancetest.bd9c6c11-9f38-11e8-982a-3a84e2ff092b\/runs\/23af5707-253d-4648-ac6c-e5363659bd35","target":"\/var\/lib\/mesos\/slave\/provisioner\/containers\/23af5707-253d-4648-ac6c-e5363659bd35\/backends\/overlay\/rootfses\/ec8ab944-100a-43b7-9433-08c799e4f9aa\/mnt\/mesos\/sandbox"}'
+Prepared mount '{"flags":14,"source":"proc","target":"\/proc","type":"proc"}'
+Executing pre-exec command '{"arguments":["mount","-n","-t","ramfs","ramfs","\/var\/lib\/mesos\/slave\/slaves\/e77195fd-0c64-4b78-8d51-1223609f3b73-S5\/frameworks\/e77195fd-0c64-4b78-8d51-1223609f3b73-0001\/executors\/3producer-topic-performancetest.bd9c6c11-9f38-11e8-982a-3a84e2ff092b\/runs\/23af5707-253d-4648-ac6c-e5363659bd35\/.secret-db1d03bf-3c20-4656-b2c6-c34bcff99d4d"],"shell":false,"value":"mount"}'
+Changing root to /var/lib/mesos/slave/provisioner/containers/23af5707-253d-4648-ac6c-e5363659bd35/backends/overlay/rootfses/ec8ab944-100a-43b7-9433-08c799e4f9aa
+3356567 records sent, 671313.4 records/sec (160.05 MB/sec), 9.9 ms avg latency, 233.0 max latency.
+3845743 records sent, 769148.6 records/sec (183.38 MB/sec), 9.1 ms avg latency, 41.0 max latency.
+10000000 records sent, 744934.445769 records/sec (177.61 MB/sec), 9.79 ms avg latency, 233.00 ms max latency, 8 ms 50th, 15 ms 95th, 24 ms 99th, 34 ms 99.9th.
+```
 
+### Example total throughput from 3 Producers
+Since I have scaled up to 12 nodes in my DC/OS cluster but Kafka is only consuming 7 nodes, I have 5 isolated nodes available for my Producers to utilize for this test. First we will start with 3 Producers
 
+Output from Logs:
+```
+10000000 records sent, 744934.445769 records/sec (177.61 MB/sec), 9.79 ms avg latency, 233.00 ms max latency, 8 ms 50th, 15 ms 95th, 24 ms 99th, 34 ms 99.9th.
+10000000 records sent, 775614.674630 records/sec (184.92 MB/sec), 9.21 ms avg latency, 216.00 ms max latency, 9 ms 50th, 17 ms 95th, 30 ms 99th, 52 ms 99.9th.
+10000000 records sent, 671276.095858 records/sec (160.04 MB/sec), 9.01 ms avg latency, 227.00 ms max latency, 8 ms 50th, 13 ms 95th, 18 ms 99th, 28 ms 99.9th.
+
+Total Throughput: 2191825.22 records/sec, 522.57 MB/sec, 9.34 ms avg latency, 225.33 ms avg max latency
+```
 
 Remove the Service:
 ```
 dcos marathon app remove 3producer-topic-performancetest
 ```
 
-As you can see from above, running multiple Producers in parallel I was able to horizontally scale to ~2.2M records/sec to my single `performancetest` topic. We could probably handle even more, which we will continue to test below
+As you can see from above, running multiple Producers in parallel I was able to push ~2.2M records/sec to my single `performancetest` topic. We could probably handle even more, which we will continue to test below
 
 ### Example total throughput from 5 Producers
 

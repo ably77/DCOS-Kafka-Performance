@@ -39,6 +39,60 @@ There are several example dashboards, but below are screenshots of the Kafka das
 ![](https://github.com/ably77/dcos-se/blob/master/Prometheus/resources/kafka-dashboard1.png)
 ![](https://github.com/ably77/dcos-se/blob/master/Prometheus/resources/kafka-dashboard2.png)
 
+Save Prometheus options as `prometheus-options.json`:
+```
+{
+  "service": {
+    "name": "/monitoring/prometheus"
+  }
+}
+```
+
+Install Prometheus Framework:
+```
+dcos package install prometheus --package-version=0.1.1-2.3.2 --options=prometheus-options.json --yes
+```
+
+Save Grafana options as `grafana-options.json`:
+```
+{
+  "service": {
+    "name": "/monitoring/grafana"
+  }
+}
+```
+
+Install Grafana Service:
+```
+dcos package install grafana --package-version=5.5.0-5.1.3 --options=grafana-options.json --yes
+```
+
+Install Marathon-LB:
+```
+dcos package install marathon-lb --package-version=1.12.3 --yes
+```
+
+Install Prometheus MLB Proxy:
+```
+dcos marathon app add https://raw.githubusercontent.com/ably77/dcos-se/master/Prometheus/1.12_prometheus/prometheus-mlb-proxy.json
+```
+
+Run the `findpublic_ips.sh` script:
+```
+./findpublic_ips.sh
+```
+
+Output should similar to below:
+```
+Public agent node found! public IP is:
+52.27.213.225
+172.12.3.121
+
+
+Once all of the services are deployed:
+open http://<PUBLIC_AGENT_IP>:9091-94 to access the Prometheus, Alertmanager, PushGateway, and Grafana UI
+```
+
 
 ## Results:
 
