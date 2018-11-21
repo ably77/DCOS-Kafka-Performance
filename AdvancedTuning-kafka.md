@@ -322,7 +322,9 @@ dcos marathon app remove 1consumer-higher-performancetest
 ### Conclusions
 
 #### Producers
+
 Lower Range - 113% increase in Throughput
+
 Higher Range - 54% increase in Throughput
 
 By tuning for throughput and increasing the batch.size, linger.ms, and compression.type parameters we can see a significant increase in throughput performance as well as latency performance of our Kafka cluster. For a 250 byte record it seems as though the lower end ranges are more ideal, resulting in >300K records/sec. The upper end also saw improvements in performance, but may be more ideal for a situation where the record size is much larger.

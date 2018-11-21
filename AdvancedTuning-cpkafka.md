@@ -322,7 +322,9 @@ dcos marathon app remove 1consumer-higher-performancetest
 ### Conclusions
 
 #### Producers
+
 Lower Range - 113% increase in Throughput
+
 Higher Range - 45% increase in Throughput
 
 By tuning for throughput and increasing the batch.size, linger.ms, and compression.type parameters we can see a significant increase in throughput performance as well as latency performance of our Kafka cluster. For a 250 byte record it seems as though the lower end ranges are more ideal, resulting in >300K records/sec. The upper end also saw improvements in performance, but may be more ideal for a situation where the record size is much larger.
@@ -330,7 +332,7 @@ By tuning for throughput and increasing the batch.size, linger.ms, and compressi
 For the rest of the testing, we will utilize the Lower Range parameters, but it would be advised to do more A/B testing within the range to optimize for your specific record-size
 
 #### Consumers
-Increasing fetch.min.bytes from 1 --> 1000000 resulted in a modest ~3% increase in performance of our Consumer.
+Increasing fetch.min.bytes from 1 --> 1000000 resulted in a modest ~16% increase in performance of our Consumer.
 
 ## Horizontal Scale
 Now that we have reached a "peak" in our current configuration (3CPU, 12GB MEM, 25GB DISK) lets horizontally scale our cluster to see what performance benefits we can gain. Begin so by adding some nodes to your DC/OS cluster. We started this guide with 5, and for the rest of this guide we will continue to scale test using up to 15 producers
