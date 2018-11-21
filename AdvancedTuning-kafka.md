@@ -224,7 +224,7 @@ fetch.nMsg.sec - 401155.3273
 
 Remove the Service:
 ```
-dcos marathon app remove 1consumer-topic-performancetest
+dcos marathon app remove 1consumer-performancetest
 ```
 
 ## Goal: Increase Throughput
@@ -282,7 +282,7 @@ dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Perfor
 
 Example Output in the logs:
 ```
-10000000 records sent, 233579.370270 records/sec (55.69 MB/sec), 106.96 ms avg latency, 693.00 ms max latency, 100 ms 50th, 194 ms 95th, 204 ms 99th, 292 ms 99.9th.
+10000000 records sent, 247586.036148 records/sec (59.03 MB/sec), 102.39 ms avg latency, 600.00 ms max latency, 101 ms 50th, 192 ms 95th, 199 ms 99th, 212 ms 99.9th.
 ```
 
 Remove the service:
@@ -302,38 +302,38 @@ dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Perfor
 
 Output:
 ```
-start.time - 2018-11-20 18:49:06:835
-end.time - 2018-11-20 18:49:34:059
-data.consumed.in.MB - 2384.1858
-MB.sec - 87.5766
-data.consumed.in.nMsg - 10000000
-nMsg.sec - 367322.9503
-rebalance.time.ms - 3021
-fetch.time.ms - 24203
-fetch.MB.sec - 98.5079
-fetch.nMsg.sec - 413171.9208
+start.time - 2018-11-21 18:02:51:305
+end.time - 2018-11-21 18:03:15:289
+data.consumed.in.MB - 2384.2063
+MB.sec - 99.4082
+data.consumed.in.nMsg - 10000086
+nMsg.sec - 416948.2155
+rebalance.time.ms - 3020
+fetch.time.ms - 20964
+fetch.MB.sec - 113.7286
+fetch.nMsg.sec - 477012.3068
 ```
 
 Remove the Service:
 ```
-dcos marathon app remove 1consumer-higher-topic-performancetest
+dcos marathon app remove 1consumer-higher-performancetest
 ```
 
 ### Conclusions
 
 #### Producers
 Lower Range - 113% increase in Throughput
-Higher Range - 45% increase in Throughput
+Higher Range - 54% increase in Throughput
 
 By tuning for throughput and increasing the batch.size, linger.ms, and compression.type parameters we can see a significant increase in throughput performance as well as latency performance of our Kafka cluster. For a 250 byte record it seems as though the lower end ranges are more ideal, resulting in >300K records/sec. The upper end also saw improvements in performance, but may be more ideal for a situation where the record size is much larger.
 
-For the rest of the testing, we will utilize the Lower Range parameters, but it would be advised to do more A/B testing within the range to optimize for your specific record-size
+For the rest of the testing, we will utilize the Lower Range parameters, but it would be advised to do more A/B testing within the range to optimize for your specific record-size, and hardware specs
 
 #### Consumers
-Increasing fetch.min.bytes from 1 --> 1000000 resulted in a modest ~3% increase in performance of our Consumer.
+Increasing fetch.min.bytes from 1 --> 1000000 resulted in a ~16% increase in throughput performance of our Consumer.
 
 ## Horizontal Scale
-Now that we have reached a "peak" in our current configuration (3CPU, 12GB MEM, 25GB DISK) lets horizontally scale our cluster to see what performance benefits we can gain. Begin so by adding some nodes to your DC/OS cluster. We started this guide with 5, and for the rest of this guide we will continue to scale test using up to 35 private agents
+Now that we have reached a "peak" in our current configuration (3CPU, 12GB MEM, 25GB DISK) lets horizontally scale our cluster to see what performance benefits we can gain. Begin so by adding some nodes to your DC/OS cluster. We started this guide with 5, and for the rest of this guide we will continue to scale test using up to 15 producers
 
 ### DC/OS Cluster Prerequisites
 - 1 Master
@@ -427,6 +427,22 @@ Public agent node found! public IP is:
 ```
 
 ### Setting Up Grafana
+
+Use the DC/OS Prometheus CLI to discover your Prometheus endpoints, we will need this later to set up our Grafana data source:
+```
+dcos prometheus endpoints prometheus --name=monitoring/prometheus
+```
+
+Output should look like below:
+```
+$ dcos prometheus endpoints prometheus --name=monitoring/prometheus
+{
+  "address": ["172.12.24.145:1026"],
+  "dns": ["prometheus-0-server.monitoringprometheus.autoip.dcos.thisdcos.directory:1026"],
+  "vip": "prometheus.monitoringprometheus.l4lb.thisdcos.directory:9090"
+}
+```
+
 Navigate to the Marathon-LB Public Agent serving the Grafana UI using the credentials `admin/admin`:
 ```
 http://<public-agent-ip>:9094
@@ -445,9 +461,9 @@ Input the fields:
 
 `Type`: Prometheus
 
-In this demo, because the Prometheus service is nested in the `/monitoring` group folder in DC/OS, the VIP hostname syntax for this demo is shown below:
+Use the dns endpoint of your prometheus service in the `HTTP URL:` input
 
-`HTTP URL`: `http://prometheus-0-server.monitoringprometheus.autoip.dcos.thisdcos.directory:1025`
+`HTTP URL`: `http://prometheus-0-server.monitoringprometheus.autoip.dcos.thisdcos.directory:1026`
 
 **Note:** your data source will not register without http:// in front of the URL
 

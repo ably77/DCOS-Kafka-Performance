@@ -224,7 +224,7 @@ fetch.nMsg.sec - 401155.3273
 
 Remove the Service:
 ```
-dcos marathon app remove 1consumer-topic-performancetest
+dcos marathon app remove 1consumer-performancetest
 ```
 
 ## Goal: Increase Throughput
@@ -316,7 +316,7 @@ fetch.nMsg.sec - 413171.9208
 
 Remove the Service:
 ```
-dcos marathon app remove 1consumer-higher-topic-performancetest
+dcos marathon app remove 1consumer-higher-performancetest
 ```
 
 ### Conclusions
@@ -333,7 +333,7 @@ For the rest of the testing, we will utilize the Lower Range parameters, but it 
 Increasing fetch.min.bytes from 1 --> 1000000 resulted in a modest ~3% increase in performance of our Consumer.
 
 ## Horizontal Scale
-Now that we have reached a "peak" in our current configuration (3CPU, 12GB MEM, 25GB DISK) lets horizontally scale our cluster to see what performance benefits we can gain. Begin so by adding some nodes to your DC/OS cluster. We started this guide with 5, and for the rest of this guide we will continue to scale test using up to 35 private agents
+Now that we have reached a "peak" in our current configuration (3CPU, 12GB MEM, 25GB DISK) lets horizontally scale our cluster to see what performance benefits we can gain. Begin so by adding some nodes to your DC/OS cluster. We started this guide with 5, and for the rest of this guide we will continue to scale test using up to 15 producers
 
 ### DC/OS Cluster Prerequisites
 - 1 Master
@@ -427,6 +427,22 @@ Public agent node found! public IP is:
 ```
 
 ### Setting Up Grafana
+
+Use the DC/OS Prometheus CLI to discover your Prometheus endpoints, we will need this later to set up our Grafana data source:
+```
+dcos prometheus endpoints prometheus --name=monitoring/prometheus
+```
+
+Output should look like below:
+```
+$ dcos prometheus endpoints prometheus --name=monitoring/prometheus
+{
+  "address": ["172.12.24.145:1026"],
+  "dns": ["prometheus-0-server.monitoringprometheus.autoip.dcos.thisdcos.directory:1026"],
+  "vip": "prometheus.monitoringprometheus.l4lb.thisdcos.directory:9090"
+}
+```
+
 Navigate to the Marathon-LB Public Agent serving the Grafana UI using the credentials `admin/admin`:
 ```
 http://<public-agent-ip>:9094
@@ -445,9 +461,9 @@ Input the fields:
 
 `Type`: Prometheus
 
-In this demo, because the Prometheus service is nested in the `/monitoring` group folder in DC/OS, the VIP hostname syntax for this demo is shown below:
+Use the dns endpoint of your prometheus service in the `HTTP URL:` input
 
-`HTTP URL`: `http://prometheus-0-server.monitoringprometheus.autoip.dcos.thisdcos.directory:1025`
+`HTTP URL`: `http://prometheus-0-server.monitoringprometheus.autoip.dcos.thisdcos.directory:1026`
 
 **Note:** your data source will not register without http:// in front of the URL
 
