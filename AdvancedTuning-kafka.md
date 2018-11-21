@@ -478,14 +478,12 @@ Select the + button --> import:
 ![](https://github.com/ably77/dcos-se/blob/master/Prometheus/resources/import2.png)
 
 Paste the Grafana.com dashboard url or id
-![](https://github.com/ably77/dcos-se/blob/master/Prometheus/resources/import3.png)
 
 Reference Dashboard IDs:
 - 1.12 DC/OS Kafka Dashboard - ID: 9018 - URL: https://grafana.com/dashboards/9018
 
 Edit your Dashboard Name and Select Data Source and Import:
 ![](https://github.com/ably77/dcos-se/blob/master/Prometheus/resources/import3.png)
-
 
 ### Run the Kafka Performance Test
 Now lets run the same single producer Kafka performance test optimized for throughput as before on our 5 broker node Kafka cluster
