@@ -598,7 +598,7 @@ dcos marathon app remove 5producer-topic-performancetest
 ```
 
 ### Conclusions
-As you can see from above, as we scale our Producers in parallel we can observe a linear relationship between adding more Producers and the Throughput increase. Now we will continue to scale our DC/OS cluster as well as our Kafka deployment to see if we can get even higher than 1.2 million records/sec with 5 brokers.
+As you can see from above, as we scale our Producers in parallel we can observe a linear relationship between adding more Producers and the Throughput increase. Now we will continue to scale our DC/OS cluster as well as our Kafka deployment to see if we can get even higher than 1.5 million records/sec with 5 producers.
 
 ## Optional: Scale your Cluster Again to test 10/15 Producers as well as adding more Partitions
 
