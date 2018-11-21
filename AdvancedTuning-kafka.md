@@ -495,8 +495,12 @@ dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Perfor
 
 Example Output in Logs:
 ```
-10000000 records sent, 315437.511829 records/sec (75.21 MB/sec), 36.03 ms avg latency, 500.00 ms max latency, 13 ms 50th, 94 ms 95th, 102 ms 99th, 190 ms 99.9th.
+10000000 records sent, 347089.653257 records/sec (82.75 MB/sec), 33.86 ms avg latency, 589.00 ms max latency, 14 ms 50th, 93 ms 95th, 104 ms 99th, 192 ms 99.9th.
 ```
+
+Navigate to the Grafana UI --> 1.12 DC/OS Kafka Dashboard to see real-time visualization:
+
+![](https://github.com/ably77/DCOS-Kafka-Performance/blob/master/resources/1producer.png)
 
 Remove the Service:
 ```
@@ -578,7 +582,7 @@ Remove the Service:
 dcos marathon app remove 3producer-topic-performancetest
 ```
 
-As you can see from above, running multiple Producers in parallel I was able to horizontally scale to ~700K records/sec to my single `performancetest` topic. We could probably handle even more, which we will continue to test below
+As you can see from above, running multiple Producers in parallel I was able to horizontally scale to ~900+K records/sec to my single `performancetest` topic. We could probably handle even more, which we will continue to test below
 
 ### Example total throughput from 5 Producers
 
