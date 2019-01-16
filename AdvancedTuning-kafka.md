@@ -118,7 +118,7 @@ Description of Producer Service:
 Here is the example application definition for our performance test service that we will call `250-baseline-kafka.json`
 ```
 {
-  "id": "/250-baseline",
+  "id": "/monitoring/loadgenerator/250-baseline",
   "backoffFactor": 1.15,
   "backoffSeconds": 1,
   "cmd": "kafka-producer-perf-test --topic performancetest --num-records 10000000 --record-size 250 --throughput 1000000 --producer-props acks=1 buffer.memory=67108864 compression.type=none batch.size=8196 linger.ms=0 retries=0 bootstrap.servers=broker.kafka.l4lb.thisdcos.directory:9092",

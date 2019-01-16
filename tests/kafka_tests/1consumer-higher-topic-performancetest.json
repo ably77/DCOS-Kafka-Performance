@@ -1,5 +1,5 @@
 {
-  "id": "/1consumer-higher-performancetest",
+  "id": "/monitoring/loadgenerator/1consumer-higher-performancetest",
   "backoffFactor": 1.15,
   "backoffSeconds": 1,
   "cmd": "kafka-consumer-perf-test --topic performancetest --messages 10000000 --threads 1 fetch.min.bytes=1000000 --broker-list=broker.kafka.l4lb.thisdcos.directory:9092",
