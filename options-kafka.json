@@ -4,7 +4,7 @@
 	},
 	"brokers": {
 		"cpus": 3,
-		"mem": 12000,
+		"mem": 10000,
 		"heap": {
 			"size": 512
 		},

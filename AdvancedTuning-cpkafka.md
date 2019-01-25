@@ -514,10 +514,10 @@ In order to attack this throughput problem with multiple producers in parallel, 
 Here is the example application definition for our performance test service that we will call `3producer-topic-performancetest.json`
 ```
 {
-  "id": "/3producer-topic-performancetest",
+  "id": "/monitoring/loadgenerator/3producer-topic-performancetest",
   "backoffFactor": 1.15,
   "backoffSeconds": 1,
-  "cmd": "kafka-producer-perf-test --topic performancetest --num-records 10000000 --record-size 250 --throughput 1000000 --producer-props acks=1 buffer.memory=67108864 compression.type=lz4 batch.size=100000 linger.ms=10 retries=0 bootstrap.servers=broker.confluent-kafka.l4lb.thisdcos.directory:9092",
+  "cmd": "kafka-producer-perf-test --topic performancetest --num-records 10000000 --record-size 250 --throughput 1000000 --producer-props acks=1 buffer.memory=67108864 compression.type=lz4 batch.size=100000 linger.ms=10 retries=0 bootstrap.servers=broker.kafka.l4lb.thisdcos.directory:9092",
   "container": {
     "type": "MESOS",
     "volumes": [],
