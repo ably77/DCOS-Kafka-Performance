@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafkaproducer-deployment
+  labels:
+    app: kafkaproducer
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: kafkaproducer
+  template:
+    metadata:
+      labels:
+        app: kafkaproducer
+    spec:
+      containers:
+      - name: confluent-client
+        image: confluentinc/cp-kafka:5.0.0
+        imagePullPolicy: Always
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1024Mi"
+            cpu: "500m"
+        command:
+          - sh
+          - -c
+          - "kafka-producer-perf-test --topic performancetest --num-records 10000000000 --record-size 250 --throughput 1000000 --producer-props acks=1 buffer.memory=67108864 compression.type=none batch.size=8196 linger.ms=0 retries=0 bootstrap.servers=kafka-0-broker.kafka.autoip.dcos.thisdcos.directory:1025,kafka-1-broker.kafka.autoip.dcos.thisdcos.directory:1025,kafka-2-broker.kafka.autoip.dcos.thisdcos.directory:1025"
+      restartPolicy: Always
