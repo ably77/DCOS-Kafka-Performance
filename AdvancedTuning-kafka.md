@@ -378,103 +378,24 @@ DC/OS 1.12 now ships with Prometheus + Telegraf for improved metrics capabilitie
 
 ### Install Prometheus and Grafana
 
-Save Prometheus options as `prometheus-options.json`:
+Install the DC/OS Monitoring Package:
 ```
-{
-  "service": {
-    "name": "/monitoring/prometheus"
-  }
-}
+dcos package install beta-dcos-monitoring --yes
 ```
 
-Install Prometheus Framework:
-```
-dcos package install prometheus --package-version=0.1.1-2.3.2 --options=prometheus-options.json --yes
-```
+The DC/OS Monitoring package comprises of Prometheus, Alertmanager, PushGateway, and Grafana all in a single DC/OS Catalog framework.
 
-Save Grafana options as `grafana-options.json`:
+To monitor the installation:
 ```
-{
-  "service": {
-    "name": "/monitoring/grafana"
-  }
-}
+dcos beta-dcos-monitoring plan status deploy --name=dcos-monitoring
 ```
 
-Install Grafana Service:
+Once the deployment is complete, you should be able to access the grafana UI through Adminrouter by running the command below:
 ```
-dcos package install grafana --package-version=5.5.0-5.1.3 --options=grafana-options.json --yes
+open `dcos config show core.dcos_url`/service/dcos-monitoring/grafana/
 ```
-
-Install Marathon-LB:
-```
-dcos package install marathon-lb --package-version=1.12.3 --yes
-```
-
-Install Prometheus MLB Proxy:
-```
-dcos marathon app add https://raw.githubusercontent.com/ably77/dcos-se/master/Prometheus/1.12_prometheus/prometheus-mlb-proxy.json
-```
-
-Run the `findpublic_ips.sh` script:
-```
-./findpublic_ips.sh
-```
-
-Output should similar to below:
-```
-Public agent node found! public IP is:
-52.27.213.225
-172.12.3.121
-```
-
-### Setting Up Grafana
-
-Use the DC/OS Prometheus CLI to discover your Prometheus endpoints, we will need this later to set up our Grafana data source:
-```
-dcos prometheus endpoints prometheus --name=monitoring/prometheus
-```
-
-Output should look like below:
-```
-$ dcos prometheus endpoints prometheus --name=monitoring/prometheus
-{
-  "address": ["172.12.24.145:1026"],
-  "dns": ["prometheus-0-server.monitoringprometheus.autoip.dcos.thisdcos.directory:1026"],
-  "vip": "prometheus.monitoringprometheus.l4lb.thisdcos.directory:9090"
-}
-```
-
-Navigate to the Marathon-LB Public Agent serving the Grafana UI using the credentials `admin/admin`:
-```
-http://<public-agent-ip>:9094
-```
-
-This takes you to the Grafana console
-![](https://github.com/ably77/dcos-se/blob/master/Prometheus/resources/grafana1.png)
-
-Select `Add a Data Source` and add Prometheus as a data source
-
-![](https://github.com/ably77/dcos-se/blob/master/Prometheus/resources/grafana2.png)
-
-Input the fields:
-
-`Name`: Prometheus
-
-`Type`: Prometheus
-
-Use the dns endpoint of your prometheus service in the `HTTP URL:` input
-
-`HTTP URL`: `http://prometheus-0-server.monitoringprometheus.autoip.dcos.thisdcos.directory:1026`
-
-**Note:** your data source will not register without http:// in front of the URL
-
-![](https://github.com/ably77/dcos-se/blob/master/Prometheus/resources/grafana3.png)
-
-Select Save and Test. Now you are ready to use Prometheus as a data source in Grafana.
 
 ### Importing Dashboards
-Once you have correctly set up your data source in the steps above you can import the dashboard.json files
 
 Select the + button --> import:
 ![](https://github.com/ably77/dcos-se/blob/master/Prometheus/resources/import2.png)
