@@ -91,7 +91,72 @@ $ dcos confluent-kafka topic create performancetest --partitions 10 --replicatio
 }
 ```
 
-## Step 3: Run the confluent-kafka performance tests
+## Set up Proper Monitoring
+DC/OS 1.12 now ships with Prometheus + Telegraf for improved metrics capabilities. Leveraging Grafana, you can test out building dashboards and monitoring your DC/OS cluster with the guide below
+
+![](https://github.com/ably77/dcos-se/blob/master/Prometheus/resources/kafka-dashboard1.png)
+![](https://github.com/ably77/dcos-se/blob/master/Prometheus/resources/kafka-dashboard2.png)
+
+
+## Step 3: Set up Proper Monitoring
+DC/OS 1.12 now ships with Prometheus + Telegraf for improved metrics capabilities. Leveraging Grafana, you can test out building dashboards and monitoring your DC/OS cluster with the guide below
+
+![](https://github.com/ably77/dcos-se/blob/master/Prometheus/resources/kafka-dashboard1.png)
+![](https://github.com/ably77/dcos-se/blob/master/Prometheus/resources/kafka-dashboard2.png)
+
+
+### Install Prometheus and Grafana
+
+Install the DC/OS Monitoring Package:
+```
+dcos package install beta-dcos-monitoring --yes
+```
+
+The DC/OS Monitoring package comprises of Prometheus, Alertmanager, PushGateway, and Grafana all in a single DC/OS Catalog framework.
+
+To monitor the installation:
+```
+dcos beta-dcos-monitoring plan status deploy --name=dcos-monitoring
+```
+
+Once the deployment is complete, you should be able to access the grafana UI through Adminrouter by running the command below:
+```
+open `dcos config show core.dcos_url`/service/dcos-monitoring/grafana/
+```
+
+### Importing Dashboards
+
+Select the + button --> import:
+![](https://github.com/ably77/dcos-se/blob/master/Prometheus/resources/import2.png)
+
+Paste the Grafana.com dashboard url or id
+
+Reference Dashboard IDs:
+- 1.12 DC/OS Kafka Dashboard - ID: 9018 - URL: https://grafana.com/dashboards/9018
+
+Edit your Dashboard Name and Select Data Source and Import:
+![](https://github.com/ably77/dcos-se/blob/master/Prometheus/resources/import3.png)
+
+
+### Run the confluent-kafka Performance Test
+Now lets run the same single producer confluent-kafka performance test optimized for throughput as before on our 5 broker node Kafka cluster
+
+Deploy the Service:
+```
+dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/cpkafka_tests/1producer-lower-topic-performancetest.json
+```
+
+Example Output in Logs:
+```
+10000000 records sent, 315437.511829 records/sec (75.21 MB/sec), 36.03 ms avg latency, 500.00 ms max latency, 13 ms 50th, 94 ms 95th, 102 ms 99th, 190 ms 99.9th.
+```
+
+Remove the Service:
+```
+dcos marathon app remove 1producer-lower-topic-performancetest
+```
+
+## Step 4: Run the confluent-kafka performance tests
 
 In this test we are using the following parameters:
 - Topic: performancetest
@@ -367,71 +432,6 @@ deploy (serial strategy) (COMPLETE)
    ├─ kafka-2:[broker] (COMPLETE)
    ├─ kafka-3:[broker] (COMPLETE)
    ├─ kafka-4:[broker] (COMPLETE)
-```
-
-## Set up Proper Monitoring
-DC/OS 1.12 now ships with Prometheus + Telegraf for improved metrics capabilities. Leveraging Grafana, you can test out building dashboards and monitoring your DC/OS cluster with the guide below
-
-![](https://github.com/ably77/dcos-se/blob/master/Prometheus/resources/kafka-dashboard1.png)
-![](https://github.com/ably77/dcos-se/blob/master/Prometheus/resources/kafka-dashboard2.png)
-
-
-## Set up Proper Monitoring
-DC/OS 1.12 now ships with Prometheus + Telegraf for improved metrics capabilities. Leveraging Grafana, you can test out building dashboards and monitoring your DC/OS cluster with the guide below
-
-![](https://github.com/ably77/dcos-se/blob/master/Prometheus/resources/kafka-dashboard1.png)
-![](https://github.com/ably77/dcos-se/blob/master/Prometheus/resources/kafka-dashboard2.png)
-
-
-### Install Prometheus and Grafana
-
-Install the DC/OS Monitoring Package:
-```
-dcos package install beta-dcos-monitoring --yes
-```
-
-The DC/OS Monitoring package comprises of Prometheus, Alertmanager, PushGateway, and Grafana all in a single DC/OS Catalog framework.
-
-To monitor the installation:
-```
-dcos beta-dcos-monitoring plan status deploy --name=dcos-monitoring
-```
-
-Once the deployment is complete, you should be able to access the grafana UI through Adminrouter by running the command below:
-```
-open `dcos config show core.dcos_url`/service/dcos-monitoring/grafana/
-```
-
-### Importing Dashboards
-
-Select the + button --> import:
-![](https://github.com/ably77/dcos-se/blob/master/Prometheus/resources/import2.png)
-
-Paste the Grafana.com dashboard url or id
-
-Reference Dashboard IDs:
-- 1.12 DC/OS Kafka Dashboard - ID: 9018 - URL: https://grafana.com/dashboards/9018
-
-Edit your Dashboard Name and Select Data Source and Import:
-![](https://github.com/ably77/dcos-se/blob/master/Prometheus/resources/import3.png)
-
-
-### Run the confluent-kafka Performance Test
-Now lets run the same single producer confluent-kafka performance test optimized for throughput as before on our 5 broker node Kafka cluster
-
-Deploy the Service:
-```
-dcos marathon app add https://raw.githubusercontent.com/ably77/DCOS-Kafka-Performance/master/tests/cpkafka_tests/1producer-lower-topic-performancetest.json
-```
-
-Example Output in Logs:
-```
-10000000 records sent, 315437.511829 records/sec (75.21 MB/sec), 36.03 ms avg latency, 500.00 ms max latency, 13 ms 50th, 94 ms 95th, 102 ms 99th, 190 ms 99.9th.
-```
-
-Remove the Service:
-```
-dcos marathon app remove 1producer-lower-topic-performancetest
 ```
 
 As we can see from above, our throughput for a single producer hasnt increased/decreased too much, however in order to gain the benefits of horizontal scaling we will also throw multiple producers at the same topic to see how much total throughput we can get out of the Kafka deployment.
