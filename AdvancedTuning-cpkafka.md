@@ -27,34 +27,31 @@ Note that the default confluent-kafka package has these specifications for broke
 - 25 GB Disk
 - 512 MB JVM Heap Size
 
-### If you have an Existing confluent-kafka Deployment
+### If you have an Existing Kafka Deployment
 
-If you were following the Quickstart guide before this, we deployed the default confluent-kafka framework with the specs listed above.
+If you were following the Quickstart guide before this, we deployed the default Kafka framework with the specs listed above.
 
-The confluent-kafka framework does not support changing the volume requirements after initial deployment in order to prevent accidental data loss from reallocation. This will require an uninstall, and reinstall of the confluent-kafka deployment since we are testing a volume requirement 25GB Disk instead of the default 5GB.
+Note that the Kafka framework does not support changing the volume requirements after initial deployment in order to prevent accidental data loss from reallocation. Instead we are just going to set the `log_retention_minutes` to a low number so that Kafka clears the logs before allocated disk fills up.
 
-**Optional:** If you are already using the service name `confluent-kafka` and cannot uninstall the deployment, you can follow this guide with a second confluent-kafka cluster if you have the resources available. Otherwise, if you want to just continue to use the default 5GB storage volume requirement you can just scale using the commands below as well.
 
-To Uninstall confluent-kafka:
-```
-dcos package uninstall confluent-kafka --yes
-```
-
-If you do not have confluent-kafka deployed yet, you can save the `options.json` configuration below and follow the instructions
+If you do not have confluent-kafka deployed yet, you can save the `options-cpkafka.json` configuration below and follow the instructions
 ```
 {
-  "service": {
-    "name": "confluent-kafka"
-  },
-    "brokers": {
-    "cpus": 3,
-    "mem": 12000,
-    "heap": {
-      "size": 512
-    },
-        "disk": 25000,
-    "count": 3
-  }
+	"service": {
+		"name": "confluent-kafka"
+	},
+	"brokers": {
+		"cpus": 3,
+		"mem": 10000,
+		"heap": {
+			"size": 512
+		},
+		"disk": 25000,
+		"count": 3
+	},
+	"kafka": {
+		"log_retention_minutes": 2
+	}
 }
 ```
 
@@ -63,9 +60,14 @@ If you do not have confluent-kafka deployed yet, you can save the `options.json`
 dcos package install confluent-kafka --options=options-cpkafka.json --yes
 ```
 
+If you have kafka already installed, update kafka by using:
+```
+dcos package update confluent-kafka --options=options-cpkafka.json --name=confluent-kafka --yes
+```
+
 Validate confluent-kafka Installation:
 ```
-dcos confluent-kafka plan status deploy
+dcos confluent-kafka plan status deploy --name=confluent-kafka
 ```
 
 Output should look like below when complete:
@@ -186,7 +188,7 @@ Here is the example application definition for our performance test service that
   "id": "/monitoring/loadgenerator/250-baseline",
   "backoffFactor": 1.15,
   "backoffSeconds": 1,
-  "cmd": "kafka-producer-perf-test --topic performancetest --num-records 10000000 --record-size 250 --throughput 1000000 --producer-props acks=1 buffer.memory=67108864 compression.type=none batch.size=8196 linger.ms=0 retries=0 bootstrap.servers=broker.kafka.l4lb.thisdcos.directory:9092",
+  "cmd": "kafka-producer-perf-test --topic performancetest --num-records 10000000 --record-size 250 --throughput 1000000 --producer-props acks=1 buffer.memory=67108864 compression.type=none batch.size=8196 linger.ms=0 retries=0 bootstrap.servers=kafka-0-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-1-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-2-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025",
   "container": {
     "type": "MESOS",
     "volumes": [],
@@ -445,7 +447,7 @@ Here is the example application definition for our performance test service that
   "id": "/monitoring/loadgenerator/3producer-topic-performancetest",
   "backoffFactor": 1.15,
   "backoffSeconds": 1,
-  "cmd": "kafka-producer-perf-test --topic performancetest --num-records 10000000 --record-size 250 --throughput 1000000 --producer-props acks=1 buffer.memory=67108864 compression.type=lz4 batch.size=100000 linger.ms=10 retries=0 bootstrap.servers=broker.kafka.l4lb.thisdcos.directory:9092",
+  "cmd": "kafka-producer-perf-test --topic performancetest --num-records 10000000 --record-size 250 --throughput 1000000 --producer-props acks=1 buffer.memory=67108864 compression.type=lz4 batch.size=100000 linger.ms=10 retries=0 bootstrap.servers=kafka-0-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-1-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025,kafka-2-broker.confluent-kafka.autoip.dcos.thisdcos.directory:1025",
   "container": {
     "type": "MESOS",
     "volumes": [],

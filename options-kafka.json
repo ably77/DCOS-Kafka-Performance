@@ -8,7 +8,7 @@
 		"heap": {
 			"size": 512
 		},
-		"disk": 25000,
+		"disk": 5000,
 		"count": 3
 	},
 	"kafka": {

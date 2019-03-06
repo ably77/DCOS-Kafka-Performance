@@ -8,7 +8,7 @@ For this guide, the specs of my cluster are as stated below:
 - 4 Private Agents
 - DC/OS CLI Installed and authenticated to your Local Machine
 
-- AWS Instance Type: m3.xlarge - 4vCPU, 15GB RAM [See here for more recommended instance types by Confluent](https://www.confluent.io/blog/design-and-deployment-considerations-for-deploying-apache-kafka-on-aws/) 
+- AWS Instance Type: m3.xlarge - 4vCPU, 15GB RAM [See here for more recommended instance types by Confluent](https://www.confluent.io/blog/design-and-deployment-considerations-for-deploying-apache-kafka-on-aws/)
 	- EBS Backed Storage - 60 GB
 
 ## Step 1: Install Confluent Kafka
@@ -28,7 +28,7 @@ Note that the defaults make up a rather small Kafka deployment, later we will ex
 
 Validate Confluent-Kafka Installation:
 ```
-dcos confluent-kafka plan status deploy
+dcos confluent-kafka plan status deploy --name=confluent-kafka
 ```
 
 Output should look like below when complete:
@@ -441,4 +441,3 @@ Average: 137302.09 records/sec, 65.47 MB/sec, 801.39 ms avg latency, 3732 ms max
 
 ## Conclusion
 At this point we have shown how to use DC/OS to spin up our default Kafka framework, as well as using the tools within the package to perform some basic load testing. As you can see from above, the 3x broker (1 CPU, 2048 MEM, 5GB DISK) default configuration hovers around ~250K msg/sec throughput on a 4 node (m3.xlarge) DC/OS Cluster. As the record-size increases, we notice that latency and throughput start to suffer - this is potentially due to not having enough horsepower. In our Advanced tutorial we will move forward to tune parameters within Kafka itself, as well as test horizontal scaling of the cluster.
-

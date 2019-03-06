@@ -28,7 +28,7 @@ Note that the defaults make up a rather small Kafka deployment, later we will ex
 
 Validate kafka Installation:
 ```
-dcos kafka plan status deploy
+dcos kafka plan status deploy --name=kafka
 ```
 
 Output should look like below when complete:

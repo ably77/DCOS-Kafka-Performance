@@ -2,7 +2,7 @@
   "id": "/monitoring/loadgenerator/1consumer-higher-performancetest",
   "backoffFactor": 1.15,
   "backoffSeconds": 1,
-  "cmd": "kafka-consumer-perf-test --topic performancetest --messages 10000000 --threads 1 fetch.min.bytes=1000000 --broker-list=broker.kafka.l4lb.thisdcos.directory:9092",
+  "cmd": "kafka-consumer-perf-test --topic performancetest --messages 10000000 --threads 1 fetch.min.bytes=1000000 --broker-list=kafka-0-broker.kafka.autoip.dcos.thisdcos.directory:1025,kafka-1-broker.kafka.autoip.dcos.thisdcos.directory:1025,kafka-2-broker.kafka.autoip.dcos.thisdcos.directory:1025",
   "constraints": [],
   "container": {
     "type": "MESOS",
