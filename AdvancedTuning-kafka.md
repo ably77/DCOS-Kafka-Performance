@@ -127,7 +127,8 @@ Select the + button --> import:
 Paste the Grafana.com dashboard url or id
 
 Reference Dashboard IDs:
-- 1.12 DC/OS Kafka Dashboard - ID: 9018 - URL: https://grafana.com/dashboards/9018
+- 1.12 DC/OS Global Kafka Dashboard - ID: 9018 - URL: https://grafana.com/dashboards/9018
+- 1.12 DC/OS Global Kafka Dashboard - ID: 9947 - URL: https://grafana.com/dashboards/9947
 
 Edit your Dashboard Name and Select Data Source and Import:
 ![](https://github.com/ably77/dcos-se/blob/master/Prometheus/resources/import3.png)
