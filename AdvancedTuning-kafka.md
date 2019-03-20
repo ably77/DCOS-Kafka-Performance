@@ -128,7 +128,10 @@ Paste the Grafana.com dashboard url or id
 
 Reference Dashboard IDs:
 - 1.12 DC/OS Global Kafka Dashboard - ID: 9018 - URL: https://grafana.com/dashboards/9018
-- 1.12 DC/OS Global Kafka Dashboard - ID: 9947 - URL: https://grafana.com/dashboards/9947
+	- For Operators: Global view metrics of all Kafka Clusters, Brokers, and Topics
+- 1.12 DC/OS Local Kafka Dashboard - ID: 9947 - URL: https://grafana.com/dashboards/9947
+	- For Developers: Parameterized to an input-able Kafka Cluster Name
+	- Only displays metrics for Brokers and Topics within a specified Kafka cluster
 
 Edit your Dashboard Name and Select Data Source and Import:
 ![](https://github.com/ably77/dcos-se/blob/master/Prometheus/resources/import3.png)
