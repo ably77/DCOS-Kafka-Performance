@@ -48,12 +48,12 @@
       }
     ]
   },
-  "description": "Example of a Queryable Local Kafka Dashboard for DC/OS 1.12",
+  "description": "Example of a Selectable Local Kafka Dashboard for DC/OS 1.12\n\n- For Developers: Parameterized to an input-able Kafka Cluster Name\n- Only displays metrics for Brokers and Topics within a specified Kafka cluster\n",
   "editable": true,
-  "gnetId": 9018,
+  "gnetId": 9947,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1553040043667,
+  "iteration": 1553121891428,
   "links": [],
   "panels": [
     {
@@ -4446,22 +4446,25 @@
   "templating": {
     "list": [
       {
-        "current": {
-          "text": "lyfoobar",
-          "value": "lyfoobar"
-        },
+        "allValue": null,
+        "current": {},
+        "datasource": "${DS_PROMETHEUS}",
         "hide": 0,
+        "includeAll": false,
         "label": "Kafka Cluster Name:",
+        "multi": false,
         "name": "servicename",
-        "options": [
-          {
-            "text": "lyfoobar",
-            "value": "lyfoobar"
-          }
-        ],
-        "query": "lyfoobar",
+        "options": [],
+        "query": "kafka_app_info_version{executor_name=\"kafka\"}",
+        "refresh": 2,
+        "regex": "/.*service_name=\"([^\"]*).*/",
         "skipUrlSync": false,
-        "type": "textbox"
+        "sort": 1,
+        "tagValuesQuery": "",
+        "tags": [],
+        "tagsQuery": "",
+        "type": "query",
+        "useTags": false
       }
     ]
   },
